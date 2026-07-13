@@ -43,7 +43,8 @@ The application queries Snowflake as its own service identity (owner's rights) u
 - A non-trial Snowflake account in a region with native Cortex (Cortex Search, Cortex Analyst and the AI SQL functions), and access to the **ACCOUNTADMIN** role for the initial setup.
 - The [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/index) (`snow`) installed and a connection configured in `~/.snowflake/config.toml`.
 - [Node.js](https://nodejs.org/) 18 or later and npm.
-- A warehouse for the app to query (the examples use `FOI_WH`).
+- The ability to create a database and warehouse. Step 1 creates `FOI` and `FOI_WH` for you via `snowflake/00_bootstrap.sql`.
+- Generative Cortex features and any fine-tuned models require **cross-region inference** in regions that do not host them natively (for example, London provides extract and embed only). If a Cortex call reports a model is unavailable in your region, enable it with `ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = '<value>'` (a commented line is included in `00_bootstrap.sql`).
 
 Optional, for the live Outlook and SharePoint integrations:
 - A Microsoft 365 tenant with a mailbox for FOI intake and a SharePoint library for SAR documents.
@@ -64,11 +65,11 @@ foi-sentinel/
     snowflake.yml               app deploy definition
     app.yml                     SPCS App Runtime spec
   snowflake/                    the Snowflake back end (run in order)
+    00_bootstrap.sql            create the FOI database, schemas and FOI_WH warehouse
     01_ddl/                     schema, case model, SAR, legislation search
     02_seed_data/               knowledge bases, seed cases, WDTK corpus
     03_cortex/                  Cortex Search services
     04_procedures/              working-day, clock, cost, triage, response, scrapers
-    06_spcs/                    reference SPCS assets (Dockerfile, spec, infra)
     sar_sharepoint_seed/        sample SAR documents for the redaction demo
     reset_demo.sql              return demo state to baseline between runs
   notebooks/
@@ -80,14 +81,16 @@ foi-sentinel/
 
 ## Step 1: Set up the Snowflake back end
 
-Run the SQL scripts in a Snowsight worksheet (or with `snow sql -f`) in the order below, using a role that can create the objects (ACCOUNTADMIN for the external-access and account-level objects). Each script is idempotent where practical.
+Run the SQL scripts in a Snowsight worksheet (or with `snow sql -f`) in the order below, using a role that can create the objects (ACCOUNTADMIN, which the bootstrap and external-access scripts require). Each script is idempotent where practical.
+
+**0. Bootstrap (`snowflake/00_bootstrap.sql`)** — creates the `FOI` database, its schemas (`FOI_SENTINEL_V2` for the data model, `APPS` for the app) and the `FOI_WH` warehouse. Run this first: every later script uses them.
 
 **1. Data model and features (`snowflake/01_ddl/`)** — run `01` through `11` in filename order:
 
 ```
-01_schema_and_case_model.sql     database FOI, schema FOI_SENTINEL_V2, case model
+01_schema_and_case_model.sql     case model, config, bank holidays (schema from step 0)
 02_wdtk_model.sql                WhatDoTheyKnow public-corpus model
-03_external_access.sql           network rule + External Access Integration (scrapers)
+03_external_access.sql           OPTIONAL: network rule + External Access Integration (scrapers)
 04_gla_ico_model.sql             GLA disclosure log + ICO decision-notice model
 05_complaint_route_model.sql     complaint / appeal routing
 06_precedent_match.sql           cross-authority precedent matching
@@ -98,6 +101,8 @@ Run the SQL scripts in a Snowsight worksheet (or with `snow sql -f`) in the orde
 10_s21_duplicate_check.sql       section 21 "already answered" detection
 11_corpus_summary.sql            corpus summary helpers
 ```
+
+`03_external_access.sql` (and the matching `03_web_scrapers.sql` in step 4) are only needed for the live GLA/ICO scrapers. The FOI, EIR and SAR walkthrough runs fully on the seeded data without them, so you can skip both on a first pass.
 
 **2. Seed data (`snowflake/02_seed_data/`)** — run `01` through `04`:
 
@@ -119,7 +124,7 @@ Run the SQL scripts in a Snowsight worksheet (or with `snow sql -f`) in the orde
 ```
 01_working_day_functions.sql     UK working-day / statutory-clock functions
 02_stage_clock_cost_triage_response.sql   stage machine, cost, triage, response
-03_web_scrapers.sql              server-side scrapers (GLA, ICO) via External Access
+03_web_scrapers.sql              OPTIONAL: server-side GLA/ICO scrapers (needs 03_external_access)
 ```
 
 **5. SAR sample documents.** Upload the files in `snowflake/sar_sharepoint_seed/` to the stage used by the SAR redaction flow (in production these arrive from SharePoint via Openflow). Use Snowsight stage upload or `snow stage copy`.
@@ -209,5 +214,6 @@ SPCS bills credits per second for compute-pool uptime, so drop or suspend the co
 ## Notes
 
 - The application queries Snowflake with owner's rights via the SPCS service token. Access to features is governed at the ingress endpoint, so control who can reach the service.
+- This repository is a working reference build. The intent is to hand it to an implementation partner to package as a Snowflake **Native App**, so keep it portable: no tenant-specific values (mailbox, Microsoft Graph secret, account identifiers) belong in the code, and the app should read every such value from consumer-supplied configuration.
 - This repository contains no credentials. The Microsoft Graph client secret, the demo mailbox and any tenant identifiers must be supplied in your own account.
 - FOI Sentinel is a demonstration build. Validate all legal wording and exemption handling against your authority's own policies before any production use.
