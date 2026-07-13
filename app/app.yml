@@ -1,0 +1,11 @@
+profile:
+  label: "FOI Sentinel"
+  description: "FOI / EIR / SAR case management and statutory-deadline command centre for UK local government, powered by Snowflake."
+  icon: icon.svg
+
+install:
+  commands:
+    - ["npm", "ci", "--include=dev"]
+
+run:
+  command: ["node", ".next/standalone/server.js"]

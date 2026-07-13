@@ -1,0 +1,27 @@
+{
+  "json_proto": {
+    "name": "FOI_CASE_ANALYTICS",
+    "database": "FOI",
+    "schema": "FOI_SENTINEL_V2",
+    "tables": [
+      {
+        "database": "FOI",
+        "schema": "FOI_SENTINEL_V2",
+        "table": "V_CASE",
+        "columnNames": [
+          "CASE_ID", "REFERENCE", "SOURCE", "REQUESTER_ORGANISATION", "RECEIVED_DATE",
+          "REGIME", "CURRENT_STAGE", "STAGE_NAME", "STAGE_ORDER", "STATUS",
+          "OWNING_DEPARTMENT", "ASSIGNED_OFFICER", "STATUTORY_DEADLINE", "CLOCK_STATE",
+          "WORKING_DAYS_USED", "WD_REMAINING", "OUTCOME", "CLOSED_DATE",
+          "ANSWERED_IN_TIME", "IS_PUBLISHED", "SENTIMENT_SCORE", "COMPLEXITY_RANK",
+          "URGENCY_SCORE", "PRIORITY_SCORE", "PRIORITY_BAND", "RAG", "LEGAL_BASIS",
+          "IS_VEXATIOUS", "IS_SYNTHETIC", "SUBJECT", "CREATED_AT"
+        ]
+      }
+    ],
+    "semanticDescription": "Operational analytics over Exampleton Council FOI, EIR and SAR cases. Tracks open versus closed cases, statutory-deadline performance (working days remaining, overdue, answered in time), RAG risk, priority band and score, AI triage complexity and requester sentiment, by regime, lifecycle stage, owning department, assigned officer and outcome. Synthetic test cases are flagged by IS_SYNTHETIC and should normally be excluded.",
+    "metadata": {
+      "warehouse": "FOI_WH"
+    }
+  }
+}

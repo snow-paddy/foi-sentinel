@@ -1,0 +1,39 @@
+# Dependencies & build output
+node_modules/
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Environment & secrets — never commit credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p8
+connections.toml
+config.toml
+
+# Snowflake CLI / local
+snowflake.log
+*.log
+
+# Demo footage — kept in a separate archive, never in the repo
+*.mp4
+*.mkv
+*.mov
+*.webm
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Python (notebooks / setup scripts)
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
