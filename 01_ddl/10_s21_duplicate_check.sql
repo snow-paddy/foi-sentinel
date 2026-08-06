@@ -59,8 +59,11 @@ WHERE c.STATUS = 'CLOSED'
   AND c.REQUEST_TEXT IS NOT NULL;
 
 -- Flag a single case if its closest own-published match clears the threshold.
+-- Body is $$-quoted so the file can be executed as a whole (snow sql -f splits on
+-- semicolons, which would otherwise shred a BEGIN...END block).
 CREATE OR REPLACE PROCEDURE SP_FLAG_S21_REUSE(P_CASE_ID VARCHAR)
 RETURNS VARCHAR LANGUAGE SQL AS
+$$
 BEGIN
     LET v_text VARCHAR;
     LET v_regime VARCHAR;
@@ -80,14 +83,28 @@ BEGIN
     END IF;
     LET v_threshold FLOAT := (SELECT COALESCE(MAX(CONFIG_VALUE::FLOAT), 0.85)
                               FROM COUNCIL_CONFIG WHERE CONFIG_KEY = 'S21_SIMILARITY_THRESHOLD');
-    -- Score the request against the own-published corpus once (exclude self).
-    CREATE OR REPLACE TEMPORARY TABLE _s21_scored AS
-        SELECT REF, WHERE_TO_FIND, AI_SIMILARITY(:v_text, REQUEST_TEXT) AS SIM
-        FROM V_S21_CORPUS
-        WHERE REF <> (SELECT REFERENCE FROM FOI_CASE WHERE CASE_ID = :P_CASE_ID);
-    LET v_sim FLOAT := (SELECT COALESCE(MAX(SIM), 0) FROM _s21_scored);
-    LET v_ref VARCHAR := (SELECT REF FROM _s21_scored ORDER BY SIM DESC, REF ASC LIMIT 1);
-    LET v_pct NUMBER(5,2) := ROUND(100 * COALESCE(:v_sim, 0), 2);
+    -- Score the request against the own-published corpus ONCE and keep the best
+    -- match. A TEMPORARY table cannot be used: Snowflake Native Apps do not support
+    -- them, and this procedure has to survive being packaged. A CTE cannot span
+    -- statements either, so the reference and its score come back together from a
+    -- single scalar subquery. That matters beyond tidiness: AI_SIMILARITY is a
+    -- billed AI call, so scoring the corpus twice would double the cost of every
+    -- intake, which is exactly what the previous temp-table read pattern hid.
+    LET v_best VARIANT := (
+        SELECT OBJECT_CONSTRUCT('ref', REF, 'sim', SIM)
+        FROM (
+            SELECT REF, AI_SIMILARITY(:v_text, REQUEST_TEXT) AS SIM
+            FROM V_S21_CORPUS
+            WHERE REQUEST_TEXT IS NOT NULL
+              AND REF <> (SELECT REFERENCE FROM FOI_CASE WHERE CASE_ID = :P_CASE_ID)
+            ORDER BY SIM DESC, REF ASC
+            LIMIT 1
+        )
+    );
+    -- An empty corpus yields NULL rather than an error, so default the score to 0.
+    LET v_sim FLOAT       := COALESCE(:v_best:sim::FLOAT, 0);
+    LET v_ref VARCHAR     := :v_best:ref::VARCHAR;
+    LET v_pct NUMBER(5,2) := ROUND(100 * :v_sim, 2);
     IF (v_sim >= :v_threshold) THEN
         MERGE INTO FOI_TRIAGE t USING (SELECT :P_CASE_ID AS CASE_ID) s ON t.CASE_ID = s.CASE_ID
             WHEN MATCHED THEN UPDATE SET S21_MATCH_REF = :v_ref, S21_SIMILARITY_PCT = :v_pct, COMPUTED_AT = CURRENT_TIMESTAMP()
@@ -103,14 +120,32 @@ BEGIN
         RETURN 'No s.21 match for ' || :P_CASE_ID || ' (closest ' || :v_pct || '%)';
     END IF;
 END;
+$$;
+
+-- Working table for the sweep. Deliberately PERMANENT rather than TEMPORARY:
+-- Native Apps do not support temporary tables, and the sweep reads its scored set
+-- four times (the merge, the stale-flag clear, and two counts for the return
+-- message) across separate statements, which a CTE cannot span. Materialising it
+-- once also holds the sweep to a single AI_SIMILARITY pass -- re-deriving the set
+-- per statement would multiply the AI cost by four. It doubles as an audit of the
+-- most recent scoring pass, including the near-misses that did not clear the bar.
+CREATE TABLE IF NOT EXISTS S21_SWEEP_SCRATCH (
+    CASE_ID  VARCHAR,
+    REF      VARCHAR,
+    SIM      FLOAT,
+    SIM_PCT  NUMBER(5,2),
+    SWEPT_AT TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+) COMMENT = 'Best s.21 match per open FOI case from the last SP_REFRESH_S21_FLAGS sweep. Truncated and repopulated each run.';
 
 -- Sweep all open FOI cases (call after intake / on demand). Set-based.
 CREATE OR REPLACE PROCEDURE SP_REFRESH_S21_FLAGS()
 RETURNS STRING LANGUAGE SQL AS
+$$
 BEGIN
     LET v_threshold FLOAT := (SELECT COALESCE(MAX(CONFIG_VALUE::FLOAT), 0.85)
                               FROM COUNCIL_CONFIG WHERE CONFIG_KEY = 'S21_SIMILARITY_THRESHOLD');
-    CREATE OR REPLACE TEMPORARY TABLE _s21_best AS
+    TRUNCATE TABLE S21_SWEEP_SCRATCH;
+    INSERT INTO S21_SWEEP_SCRATCH (CASE_ID, REF, SIM, SIM_PCT)
         WITH oc AS (
             SELECT CASE_ID, REFERENCE, REQUEST_TEXT
             FROM FOI_CASE WHERE STATUS = 'OPEN' AND REGIME = 'FOI' AND REQUEST_TEXT IS NOT NULL
@@ -126,7 +161,7 @@ BEGIN
         QUALIFY ROW_NUMBER() OVER (PARTITION BY CASE_ID ORDER BY SIM DESC, REF ASC) = 1;
     -- Apply matches at/above threshold, persisting the score alongside the ref.
     MERGE INTO FOI_TRIAGE t
-        USING (SELECT CASE_ID, REF, SIM_PCT FROM _s21_best WHERE SIM >= :v_threshold) s
+        USING (SELECT CASE_ID, REF, SIM_PCT FROM S21_SWEEP_SCRATCH WHERE SIM >= :v_threshold) s
         ON t.CASE_ID = s.CASE_ID
         WHEN MATCHED THEN UPDATE SET S21_MATCH_REF = s.REF, S21_SIMILARITY_PCT = s.SIM_PCT, COMPUTED_AT = CURRENT_TIMESTAMP()
         WHEN NOT MATCHED THEN INSERT (CASE_ID, S21_MATCH_REF, S21_SIMILARITY_PCT, COMPUTED_AT)
@@ -134,11 +169,12 @@ BEGIN
     -- Clear stale flags (and their scores) that no longer clear the threshold.
     UPDATE FOI_TRIAGE SET S21_MATCH_REF = NULL, S21_SIMILARITY_PCT = NULL
         WHERE S21_MATCH_REF IS NOT NULL
-          AND CASE_ID NOT IN (SELECT CASE_ID FROM _s21_best WHERE SIM >= :v_threshold);
+          AND CASE_ID NOT IN (SELECT CASE_ID FROM S21_SWEEP_SCRATCH WHERE SIM >= :v_threshold);
     RETURN 'Refreshed s.21 flags; matched '
-        || (SELECT COUNT(*) FROM _s21_best WHERE SIM >= :v_threshold)
-        || ' of ' || (SELECT COUNT(*) FROM _s21_best) || ' open FOI cases.';
+        || (SELECT COUNT(*) FROM S21_SWEEP_SCRATCH WHERE SIM >= :v_threshold)
+        || ' of ' || (SELECT COUNT(*) FROM S21_SWEEP_SCRATCH) || ' open FOI cases.';
 END;
+$$;
 
 -- Populate flags after cases + disclosure log are seeded (run post-seed).
 CALL SP_REFRESH_S21_FLAGS();

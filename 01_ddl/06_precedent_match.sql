@@ -107,13 +107,45 @@ CREATE OR REPLACE TABLE FOI_PRECEDENT_MATCH (
 -- (AI_SIMILARITY on request text), above a 40% floor. Cheap board reads
 -- afterwards; call on demand and after intake. Preserves any HITL review
 -- state (REVIEWED_BY / USED) across refreshes by re-merging.
+-- Working tables for the sweep. Deliberately PERMANENT rather than TEMPORARY:
+-- Native Apps do not support temporary tables. The scored set is read after the
+-- destructive TRUNCATE of FOI_PRECEDENT_MATCH, and the HITL snapshot must be
+-- taken BEFORE that truncate, so both have to outlive a single statement.
+-- Materialising the scored set once also holds the sweep to one AI_SIMILARITY
+-- pass over the corpus.
+CREATE TABLE IF NOT EXISTS PRECEDENT_SWEEP_SCRATCH (
+  CASE_ID        VARCHAR,
+  REFERENCE      VARCHAR,
+  SOURCE         VARCHAR,
+  REF            VARCHAR,
+  TITLE          VARCHAR,
+  URL            VARCHAR,
+  SIMILARITY_PCT NUMBER(38,0),
+  CLEAN_OUTCOME  VARCHAR,
+  IS_SYNTHETIC   BOOLEAN,
+  REQUEST_TEXT   VARCHAR,
+  RESPONSE_TEXT  VARCHAR
+) COMMENT = 'Best precedent match per open case from the last SP_REFRESH_PRECEDENT_MATCH sweep. Truncated and repopulated each run.';
+
+CREATE TABLE IF NOT EXISTS PRECEDENT_HITL_SCRATCH (
+  CASE_ID     VARCHAR,
+  SOURCE      VARCHAR,
+  REF         VARCHAR,
+  REVIEWED_BY VARCHAR,
+  REVIEWED_AT TIMESTAMP_NTZ,
+  USED        BOOLEAN
+) COMMENT = 'Human review state carried across a precedent sweep so REVIEWED_BY / USED survive the rebuild.';
+
 CREATE OR REPLACE PROCEDURE SP_REFRESH_PRECEDENT_MATCH()
 RETURNS STRING
 LANGUAGE SQL
 AS
 $$
 BEGIN
-  CREATE OR REPLACE TEMPORARY TABLE _PREC_NEW AS
+  TRUNCATE TABLE PRECEDENT_SWEEP_SCRATCH;
+  INSERT INTO PRECEDENT_SWEEP_SCRATCH
+    (CASE_ID, REFERENCE, SOURCE, REF, TITLE, URL, SIMILARITY_PCT, CLEAN_OUTCOME,
+     IS_SYNTHETIC, REQUEST_TEXT, RESPONSE_TEXT)
   WITH oc AS (
     SELECT CASE_ID, REFERENCE, REQUEST_TEXT
     FROM FOI_CASE WHERE STATUS='OPEN' AND REQUEST_TEXT IS NOT NULL
@@ -131,8 +163,10 @@ BEGIN
   QUALIFY ROW_NUMBER() OVER (PARTITION BY CASE_ID ORDER BY SIM DESC, REF ASC) = 1
      AND ROUND(100*SIM) >= 40;
 
-  -- Carry forward HITL review state, then replace.
-  CREATE OR REPLACE TEMPORARY TABLE _PREC_HITL AS
+  -- Carry forward HITL review state, then replace. This snapshot must be taken
+  -- before the TRUNCATE below, which is why it cannot be a CTE.
+  TRUNCATE TABLE PRECEDENT_HITL_SCRATCH;
+  INSERT INTO PRECEDENT_HITL_SCRATCH (CASE_ID, SOURCE, REF, REVIEWED_BY, REVIEWED_AT, USED)
   SELECT CASE_ID, SOURCE, REF, REVIEWED_BY, REVIEWED_AT, USED FROM FOI_PRECEDENT_MATCH;
 
   TRUNCATE TABLE FOI_PRECEDENT_MATCH;
@@ -142,8 +176,8 @@ BEGIN
   SELECT n.CASE_ID, n.REFERENCE, n.SOURCE, n.REF, n.TITLE, n.URL, n.SIMILARITY_PCT,
          n.CLEAN_OUTCOME, n.IS_SYNTHETIC, n.REQUEST_TEXT, n.RESPONSE_TEXT,
          h.REVIEWED_BY, h.REVIEWED_AT, COALESCE(h.USED, FALSE)
-  FROM _PREC_NEW n
-  LEFT JOIN _PREC_HITL h ON h.CASE_ID = n.CASE_ID AND h.REF = n.REF AND h.SOURCE = n.SOURCE;
+  FROM PRECEDENT_SWEEP_SCRATCH n
+  LEFT JOIN PRECEDENT_HITL_SCRATCH h ON h.CASE_ID = n.CASE_ID AND h.REF = n.REF AND h.SOURCE = n.SOURCE;
 
   RETURN 'Refreshed precedent matches for ' || (SELECT COUNT(*) FROM FOI_PRECEDENT_MATCH) || ' open cases.';
 END;
