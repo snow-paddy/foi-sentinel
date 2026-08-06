@@ -23,7 +23,7 @@ export function BoardOverview({ cases, council }: { cases: BoardCase[]; council:
       {/* Figures */}
       <div className="mt-3 flex flex-wrap gap-3">
         <Stat label="Open requests" value={open} tone="var(--brand-primary)" icon />
-        <Stat label="At risk" value={atRisk} tone="var(--warn)" />
+        <Stat label="At risk" value={atRisk} tone="var(--warn-text)" />
         <Stat label="Overdue" value={overdue} tone="var(--danger)" />
       </div>
 
@@ -38,14 +38,14 @@ export function BoardOverview({ cases, council }: { cases: BoardCase[]; council:
           <span className="ml-1 text-muted-foreground/70">(deadline)</span>
         </span>
 
-        <span className="text-border">|</span>
+        <span className="text-border" aria-hidden="true">|</span>
 
         <span className="inline-flex items-center gap-1.5">
           <span className="rounded bg-muted px-1.5 py-0.5 font-bold text-muted-foreground">Cx</span>
           Request complexity (1–10)
         </span>
 
-        <span className="text-border">|</span>
+        <span className="text-border" aria-hidden="true">|</span>
 
         <span className="inline-flex items-center gap-2">
           Sentiment:

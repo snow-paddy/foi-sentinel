@@ -11,7 +11,7 @@ export function DemoBadge({ reference, className = "" }: { reference: string; cl
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${className}`}
-      style={{ background: "var(--warn-bg)", color: "var(--warn)" }}
+      style={{ background: "var(--warn-bg)", color: "var(--warn-text)" }}
       title="Created via the Email Intake demo"
     >
       <FlaskConical className="size-2.5" /> Demo intake

@@ -61,7 +61,7 @@ function Deadline({ c }: { c: FocusCard }) {
   const wd = c.wdRemaining
   if (wd == null) return <span className="text-muted-foreground">Deadline {fmtDate(c.deadline)}</span>
   if (wd < 0) return <span className="font-semibold" style={{ color: "var(--danger)" }}>{Math.abs(wd)} day{Math.abs(wd) === 1 ? "" : "s"} overdue</span>
-  const tone = wd <= 3 ? "var(--danger)" : wd <= 7 ? "var(--warn)" : "var(--foreground)"
+  const tone = wd <= 3 ? "var(--danger)" : wd <= 7 ? "var(--warn-text)" : "var(--foreground)"
   return <span className="tnum" style={{ color: tone }}>{wd} working day{wd === 1 ? "" : "s"} left</span>
 }
 
@@ -336,9 +336,9 @@ function ComplexLane({ cases }: { cases: FocusCard[] }) {
   return (
     <div className="mt-4 space-y-3">
       <div className="flex items-start gap-2.5 rounded-xl border border-[var(--warn)]/30 bg-[var(--warn-bg)] p-4">
-        <ShieldAlert className="mt-0.5 size-5 shrink-0" style={{ color: "var(--warn)" }} />
+        <ShieldAlert className="mt-0.5 size-5 shrink-0" style={{ color: "var(--warn-text)" }} />
         <div>
-          <p className="text-sm font-semibold" style={{ color: "var(--warn)" }}>Needs human judgement</p>
+          <p className="text-sm font-semibold" style={{ color: "var(--warn-text)" }}>Needs human judgement</p>
           <p className="text-xs text-muted-foreground">
             Flagged for human judgement: high complexity, potentially vexatious, engaging a public-interest test, or multiple exemptions applied. The AI does not pre-draft these. Open each case to work it through with full context.
           </p>
@@ -363,7 +363,7 @@ function ComplexLane({ cases }: { cases: FocusCard[] }) {
                   <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs font-semibold" title={regimeLabel(c.regime)}>{c.regime}</span>
                   <PriorityChip band={c.priorityBand} score={c.priorityScore} />
                   {drivers.map((d, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold" style={{ background: "var(--warn-bg)", color: "var(--warn)" }}>
+                    <span key={i} className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold" style={{ background: "var(--warn-bg)", color: "var(--warn-text)" }}>
                       <d.Icon className="size-3" /> {d.label}
                     </span>
                   ))}
@@ -418,7 +418,7 @@ export function FocusDeck({ cases }: { cases: FocusCard[] }) {
   const tabs: { id: Lane; label: string; count: number; icon: typeof Zap; tint: string }[] = [
     { id: "quick", label: "Quick wins", count: quick.length, icon: Zap, tint: "var(--ok)" },
     { id: "review", label: "Needs review", count: review.length, icon: Layers, tint: "var(--brand-primary)" },
-    { id: "complex", label: "Complex", count: complex.length, icon: ShieldAlert, tint: "var(--warn)" },
+    { id: "complex", label: "Complex", count: complex.length, icon: ShieldAlert, tint: "var(--warn-text)" },
   ]
 
   return (
@@ -435,7 +435,7 @@ export function FocusDeck({ cases }: { cases: FocusCard[] }) {
               style={active ? { background: t.tint } : undefined}>
               <Icon className="size-4" />
               {t.label}
-              <span className={`tnum rounded-full px-1.5 text-xs font-bold ${active ? "bg-white/25" : "bg-muted text-foreground"}`}>{t.count}</span>
+              <span className={`tnum rounded-full px-1.5 text-xs font-bold ${active ? "bg-black/25" : "bg-muted text-foreground"}`}>{t.count}</span>
             </button>
           )
         })}

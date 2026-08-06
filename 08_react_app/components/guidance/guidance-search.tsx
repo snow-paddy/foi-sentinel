@@ -143,7 +143,7 @@ export function GuidanceSearch({ topics = [] }: { topics?: PublishedTopic[] }) {
                     <li key={i} className="rounded-lg border border-border p-3 text-sm">
                       <p className="font-medium">{r.TOPIC} <span className="text-xs text-muted-foreground">· {r.REFERENCE_NUMBER}</span></p>
                       {r.RESPONSE_SUMMARY && <p className="mt-1 line-clamp-3 text-xs text-muted-foreground">{r.RESPONSE_SUMMARY}</p>}
-                      {r.EXEMPTIONS_APPLIED && <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--warn)" }}>{r.EXEMPTIONS_APPLIED}</p>}
+                      {r.EXEMPTIONS_APPLIED && <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--warn-text)" }}>{r.EXEMPTIONS_APPLIED}</p>}
                     </li>
                   ))}
                 </ul>

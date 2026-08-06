@@ -67,7 +67,7 @@ export function SlaGauge({ pct, target }: { pct: number; target: number }) {
 
   // Colour is resolved against the final figure so it doesn't flicker bands mid-sweep.
   const color =
-    pct >= target ? "var(--ok)" : pct >= target - 10 ? "var(--warn)" : "var(--danger)"
+    pct >= target ? "var(--ok)" : pct >= target - 10 ? "var(--warn-text)" : "var(--danger)"
 
   const tickOuter = polar(cx, cy, r + stroke / 2 + 3, targetAngle)
   const tickInner = polar(cx, cy, r - stroke / 2 - 3, targetAngle)

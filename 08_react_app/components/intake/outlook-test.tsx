@@ -418,7 +418,7 @@ function StageOutput({ n, p, caseRef }: { n: number; p: Pipeline | null; caseRef
     const e = p.evaluation
     if (!e) return <div className={box}>Evaluation not available.</div>
     const v = (e.verdict || "").toUpperCase()
-    const vColor = v === "PASS" ? { bg: "var(--ok-bg)", fg: "var(--ok)" } : v === "FAIL" ? { bg: "var(--danger-bg)", fg: "var(--danger)" } : { bg: "var(--warn-bg)", fg: "var(--warn)" }
+    const vColor = v === "PASS" ? { bg: "var(--ok-bg)", fg: "var(--ok)" } : v === "FAIL" ? { bg: "var(--danger-bg)", fg: "var(--danger)" } : { bg: "var(--warn-bg)", fg: "var(--warn-text)" }
     return (
       <div className={box}>
         <div className="space-y-2"><Bar label="Groundedness" value={e.groundedness} /><Bar label="Coverage" value={e.coverage} /></div>
@@ -430,7 +430,7 @@ function StageOutput({ n, p, caseRef }: { n: number; p: Pipeline | null; caseRef
     if (!p.draft) return <div className={box}>No draft generated.</div>
     const b = p.benchmark
     const bv = (b?.verdict || "").toUpperCase()
-    const bColor = bv === "COMPARABLE" ? { bg: "var(--ok-bg)", fg: "var(--ok)" } : bv === "BELOW" ? { bg: "var(--danger-bg)", fg: "var(--danger)" } : { bg: "var(--warn-bg)", fg: "var(--warn)" }
+    const bColor = bv === "COMPARABLE" ? { bg: "var(--ok-bg)", fg: "var(--ok)" } : bv === "BELOW" ? { bg: "var(--danger-bg)", fg: "var(--danger)" } : { bg: "var(--warn-bg)", fg: "var(--warn-text)" }
     return (
       <div className={box}>
         <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap text-foreground" style={{ fontFamily: "inherit" }}>{p.draft}</pre>

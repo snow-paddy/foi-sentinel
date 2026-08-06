@@ -90,7 +90,7 @@ export default async function ReportingPage() {
           </div>
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Over s.12 limit</p>
-            <p className="mt-1 text-2xl font-bold tnum" style={{ color: cost.pctOverLimit > 0 ? "var(--warn)" : "var(--ok)" }}>{cost.pctOverLimit}%</p>
+            <p className="mt-1 text-2xl font-bold tnum" style={{ color: cost.pctOverLimit > 0 ? "var(--warn-text)" : "var(--ok)" }}>{cost.pctOverLimit}%</p>
             <p className="text-xs text-muted-foreground">may be refused (s.12)</p>
           </div>
         </div>

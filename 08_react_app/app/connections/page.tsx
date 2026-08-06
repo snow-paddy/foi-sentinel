@@ -15,7 +15,7 @@ function StateBadge({ state }: { state: ConnectionSpec["state"] }) {
       className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
       style={{
         backgroundColor: live ? "var(--ok-bg)" : "var(--warn-bg)",
-        color: live ? "var(--ok)" : "var(--warn)",
+        color: live ? "var(--ok)" : "var(--warn-text)",
       }}
     >
       {state}
@@ -134,7 +134,7 @@ export default async function ConnectionsPage() {
                   className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
                   style={{
                     backgroundColor: r.mode === "Reference" ? "var(--ok-bg)" : "var(--warn-bg)",
-                    color: r.mode === "Reference" ? "var(--ok)" : "var(--warn)",
+                    color: r.mode === "Reference" ? "var(--ok)" : "var(--warn-text)",
                   }}
                 >
                   {r.mode}

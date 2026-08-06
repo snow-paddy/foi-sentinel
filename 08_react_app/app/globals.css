@@ -16,10 +16,15 @@
     --brand-nav-bg: #0b0c0c;      /* GOV.UK black */
     --brand-nav-fg: #ffffff;
 
-    /* Status palette (RAG) */
-    --ok: #00703c;                /* GOV.UK green */
-    --warn: #f47738;              /* GOV.UK orange */
-    --danger: #d4351c;            /* GOV.UK red */
+    /* Status palette (RAG).
+     * The vivid tokens are for FILLS: dots, borders, chart series, badge backgrounds.
+     * Orange fails WCAG AA as small text (2.45:1), so text uses --warn-text — a dark
+     * amber that passes on both white and the peach --warn-bg. Green and red are legible
+     * enough as text once --danger is nudged darker, so they need no separate text token. */
+    --ok: #00703c;                /* GOV.UK green — 4.9:1 as text, passes */
+    --warn: #f47738;              /* GOV.UK orange — FILLS ONLY, not text */
+    --warn-text: #8a4400;         /* dark amber for warning TEXT — 7:1 on white, 6.5:1 on --warn-bg */
+    --danger: #c8281a;            /* GOV.UK red, nudged darker to clear 4.5:1 as text on the canvas */
     --ok-bg: #e9f3ee;
     --warn-bg: #fdeede;
     --danger-bg: #fbeae8;
@@ -51,7 +56,7 @@
     --secondary: #f1f5f9;         /* slate-100 */
     --secondary-foreground: #0f172a;
     --muted: #f1f5f9;             /* slate-100 */
-    --muted-foreground: #64748b;  /* slate-500 */
+    --muted-foreground: #505a5f;  /* GOV.UK secondary text — 5.9:1 on white (slate-500 was 4.26, below AA) */
     --accent: #f1f5f9;            /* slate-100 */
     --accent-foreground: #0f172a;
     --destructive: oklch(0.577 0.245 27.325);
@@ -101,6 +106,7 @@
     --secondary-foreground: #f8fafc;
     --muted: #1e293b;            /* slate-800 */
     --muted-foreground: #94a3b8; /* slate-400 */
+    --warn-text: #f9a870;        /* light amber for warning text on dark surfaces */
     --accent: #1e293b;
     --accent-foreground: #f8fafc;
     --border: #334155;           /* slate-700 */

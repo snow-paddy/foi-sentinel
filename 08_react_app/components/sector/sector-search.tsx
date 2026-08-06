@@ -66,7 +66,7 @@ export function SectorSearch() {
                 {r.REFUSAL_REASON && (
                   <p className="mt-1.5 border-t border-border pt-1.5 text-xs">
                     {r.REFUSAL_SECTIONS && (
-                      <span className="mr-1.5 rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: "var(--warn-bg)", color: "var(--warn)" }}>
+                      <span className="mr-1.5 rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: "var(--warn-bg)", color: "var(--warn-text)" }}>
                         {r.REFUSAL_SECTIONS}
                       </span>
                     )}

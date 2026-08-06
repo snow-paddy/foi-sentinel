@@ -61,7 +61,7 @@ function deadlineCell(c: CaseRow) {
         {Math.abs(wd)} day{Math.abs(wd) === 1 ? "" : "s"} overdue
       </span>
     )
-  const tone = wd <= 3 ? "var(--danger)" : wd <= 7 ? "var(--warn)" : "var(--foreground)"
+  const tone = wd <= 3 ? "var(--danger)" : wd <= 7 ? "var(--warn-text)" : "var(--foreground)"
   return (
     <span style={{ color: tone }} className="tnum">
       {wd} day{wd === 1 ? "" : "s"} left
@@ -116,7 +116,7 @@ function StatutoryStrip() {
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground">
       <Scale className="size-3.5 shrink-0" style={{ color: "var(--brand-primary)" }} />
       <span><span className="font-semibold text-foreground">Statutory deadline:</span> respond within <span className="font-semibold text-foreground">20 working days</span></span>
-      <span className="text-border">|</span>
+      <span className="text-border" aria-hidden="true">|</span>
       <span>FOIA 2000 s.10 · EIR 2004 reg.5(2)</span>
     </div>
   )
@@ -181,7 +181,7 @@ async function ReviewsView() {
       {/* At-a-glance figures for the challenge workload. */}
       <div className="flex flex-wrap gap-3">
         <ReviewStat label="Internal reviews open" value={openReviews} tone="var(--brand-primary)" icon={Scale} />
-        <ReviewStat label="ICO complaints open" value={openComplaints} tone="var(--warn)" icon={AlertOctagon} />
+        <ReviewStat label="ICO complaints open" value={openComplaints} tone="var(--warn-text)" icon={AlertOctagon} />
         <ReviewStat label="Published to log (s.19)" value={published} tone="var(--ok)" icon={Gavel} />
         <ReviewStat label="Sector overturn rate" value={`${overturnPct}%`} tone="var(--muted-foreground)" icon={Clock} />
       </div>
@@ -196,7 +196,7 @@ async function ReviewsView() {
           <AlertOctagon className="size-4" style={{ color: "var(--brand-primary)" }} /> Simulate an escalation (demo)
         </summary>
         <div className="border-t border-border p-5">
-          <p className="mb-3 rounded-lg border border-border bg-[var(--warn-bg)] p-3 text-xs" style={{ color: "var(--warn)" }}>
+          <p className="mb-3 rounded-lg border border-border bg-[var(--warn-bg)] p-3 text-xs" style={{ color: "var(--warn-text)" }}>
             Synthetic test data. The escalation route runs Response → Internal Review → ICO. Generating one reopens the case and advances it to the Review stage, then it appears in the queues above.
           </p>
           <EscalationForm cases={escalationCases} />

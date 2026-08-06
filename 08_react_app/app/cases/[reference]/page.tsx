@@ -73,7 +73,7 @@ function DeadlineBanner({ c }: { c: CaseDetail }) {
     tone = c.outcome ? "var(--muted-foreground)" : "var(--ok)"
     headline = `Closed${c.outcome ? `: ${c.outcome}` : ""}`
   } else if (c.clockState && c.clockState.toUpperCase() !== "RUNNING") {
-    tone = "var(--warn)"
+    tone = "var(--warn-text)"
     headline = "Clock stopped, awaiting clarification"
     icon = <PauseCircle className="size-5" />
   } else if (wd == null) {
@@ -84,7 +84,7 @@ function DeadlineBanner({ c }: { c: CaseDetail }) {
     headline = `${Math.abs(wd)} working day${Math.abs(wd) === 1 ? "" : "s"} overdue`
     icon = <AlertTriangle className="size-5" />
   } else {
-    tone = wd <= 3 ? "var(--danger)" : wd <= 7 ? "var(--warn)" : "var(--ok)"
+    tone = wd <= 3 ? "var(--danger)" : wd <= 7 ? "var(--warn-text)" : "var(--ok)"
     headline = `${wd} working day${wd === 1 ? "" : "s"} remaining`
     icon = wd <= 7 ? <Clock className="size-5" /> : <CheckCircle2 className="size-5" />
   }
@@ -179,7 +179,7 @@ async function CaseView({ params }: { params: Params }) {
       <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground">
         <Scale className="size-3.5 shrink-0" style={{ color: "var(--brand-primary)" }} />
         <span>{detail.regime === "EIR" ? "EIR 2004 reg.5(2)" : detail.regime === "SAR" ? "UK GDPR Art.12 / DPA 2018" : "FOIA 2000 s.10"}</span>
-        {detail.legalBasis && (<><span className="text-border">|</span><span>{detail.legalBasis}</span></>)}
+        {detail.legalBasis && (<><span className="text-border" aria-hidden="true">|</span><span>{detail.legalBasis}</span></>)}
       </div>
 
       {/* Header */}
@@ -340,7 +340,7 @@ async function CaseView({ params }: { params: Params }) {
                             style={{ background: "var(--muted)", color: "var(--muted-foreground)" }}>{rd.basisSection || "—"}</span>
                       {rd.verified
                         ? <span className="inline-flex items-center gap-1 text-xs font-semibold" style={{ color: "var(--ok)" }}><CheckCircle2 className="size-3.5" /> Verified</span>
-                        : <span className="text-xs font-medium" style={{ color: "var(--warn)" }}>Unverified</span>}
+                        : <span className="text-xs font-medium" style={{ color: "var(--warn-text)" }}>Unverified</span>}
                     </div>
                     <p className="mt-1 text-foreground/80">{rd.excerpt}</p>
                     {!closed && !rd.verified && <RedactionVerify reference={detail.reference} redactionId={rd.redactionId} />}

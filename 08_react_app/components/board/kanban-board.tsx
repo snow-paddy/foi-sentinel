@@ -117,7 +117,7 @@ export function KanbanBoard({ cases, phases }: { cases: BoardCase[]; phases: { i
                       <div className="min-w-0">
                         <div className="truncate text-xs font-semibold">{p.label ?? p.id}</div>
                         {p.note && <div className="text-[10px] font-medium text-muted-foreground">{p.note}</div>}
-                        {isChallenge && <div className="text-[10px] font-medium" style={{ color: "var(--warn)" }}>Requester-led · not draggable</div>}
+                        {isChallenge && <div className="text-[10px] font-medium" style={{ color: "var(--warn-text)" }}>Requester-led · not draggable</div>}
                       </div>
                       <span className="tnum shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
                         {items.length}

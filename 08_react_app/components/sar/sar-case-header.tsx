@@ -46,7 +46,7 @@ export function SarCaseHeader({ subject, meta }: { subject: SarSubject; meta: Sa
         <div className="rounded-lg border border-border p-3">
           <div className="flex items-center gap-1 text-xs text-muted-foreground"><Clock className="size-3" /> Statutory clock</div>
           <p className="mt-1 text-sm font-semibold">Due {meta.due || "—"}</p>
-          <p className="text-xs" style={{ color: paused ? "var(--warn)" : "var(--muted-foreground)" }}>
+          <p className="text-xs" style={{ color: paused ? "var(--warn-text)" : "var(--muted-foreground)" }}>
             {paused ? "Paused pending clarification" : "Running · one calendar month"}
           </p>
         </div>

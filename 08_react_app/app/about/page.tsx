@@ -43,7 +43,7 @@ export default async function AboutPage() {
           </ul>
         </Card>
         <Card className="p-5">
-          <h2 className="text-base font-semibold" style={{ color: "var(--warn)" }}>Humans decide</h2>
+          <h2 className="text-base font-semibold" style={{ color: "var(--warn-text)" }}>Humans decide</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground/90">
             <li>Applying or disapplying exemptions (public interest test)</li>
             <li>Verifying every redaction before release</li>

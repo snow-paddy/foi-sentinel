@@ -148,7 +148,7 @@ export function RedactionStudio({ doc }: { doc: RedactionDemoDoc }) {
           </div>
         </header>
         <div className="p-3">
-          <div className="mb-2 rounded-md border px-3 py-2 text-[11px]" style={{ backgroundColor: "var(--warn-bg)", borderColor: "var(--warn)", color: "var(--warn)" }}>
+          <div className="mb-2 rounded-md border px-3 py-2 text-[11px]" style={{ backgroundColor: "var(--warn-bg)", borderColor: "var(--warn)", color: "var(--warn-text)" }}>
             Synthetic training document, fabricated personal data for demonstration only.
           </div>
           <object data="/api/redaction/demo/pdf" type="application/pdf" className="h-[640px] w-full rounded-md border border-border bg-white">

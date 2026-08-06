@@ -41,7 +41,7 @@ export function priorityStyle(band: string | null | undefined): PriorityStyle {
       return { bg: "var(--danger-bg)", fg: "var(--danger)", dot: "var(--danger)", label: "High" }
     case "MEDIUM":
     case "MED":
-      return { bg: "var(--warn-bg)", fg: "var(--warn)", dot: "var(--warn)", label: "Medium" }
+      return { bg: "var(--warn-bg)", fg: "var(--warn-text)", dot: "var(--warn)", label: "Medium" }
     case "LOW":
       return { bg: "var(--muted)", fg: "var(--muted-foreground)", dot: "var(--muted-foreground)", label: "Low" }
     default:

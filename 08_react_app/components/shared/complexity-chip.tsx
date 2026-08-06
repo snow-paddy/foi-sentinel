@@ -15,7 +15,7 @@ const COMPLEXITY_EXPLAINER =
   "Scored 0\u201310 by Snowflake Cortex at triage from the request's breadth, the number of departments and records likely involved, estimated officer hours, and whether exemptions or sensitive / third-party data are in play. Higher = more effort and risk. It is a triage signal for prioritisation, not a decision."
 
 export function ComplexityChip({ score, factors = [] }: { score: number; factors?: string[] }) {
-  const color = score >= 7 ? "var(--danger)" : score >= 4 ? "var(--warn)" : "var(--muted-foreground)"
+  const color = score >= 7 ? "var(--danger)" : score >= 4 ? "var(--warn-text)" : "var(--muted-foreground)"
   const rows: HoverExplainRow[] = factors.length ? [{ label: "Drivers", value: factors.join(" \u00b7 ") }] : []
   return (
     <HoverExplain

@@ -12,7 +12,7 @@ import { sentimentBand } from "@/lib/format"
 export function TriagePanel({ triage }: { triage: CaseTriage }) {
   const sb = triage.sentimentScore == null ? null : sentimentBand(triage.sentimentScore)
   const cx = triage.complexityScore
-  const cxColor = cx == null ? "var(--muted-foreground)" : cx >= 7 ? "var(--danger)" : cx >= 4 ? "var(--warn)" : "var(--ok)"
+  const cxColor = cx == null ? "var(--muted-foreground)" : cx >= 7 ? "var(--danger)" : cx >= 4 ? "var(--warn-text)" : "var(--ok)"
 
   return (
     <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
@@ -112,7 +112,7 @@ export function TriagePanel({ triage }: { triage: CaseTriage }) {
         {/* s.21 duplicate */}
         {triage.s21MatchRef && (
           <div className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium"
-               style={{ background: "var(--warn-bg)", color: "var(--warn)" }}>
+               style={{ background: "var(--warn-bg)", color: "var(--warn-text)" }}>
             <Copy className="size-3.5" /> Possible s.21 duplicate of {triage.s21MatchRef}
             {triage.s21SimilarityPct != null && (
               <span className="ml-1 rounded px-1.5 py-0.5 tabular-nums"

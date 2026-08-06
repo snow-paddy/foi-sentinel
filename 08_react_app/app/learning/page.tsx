@@ -78,7 +78,7 @@ export default async function LearningPage() {
               </div>
               <div className="mt-3 flex items-center gap-2 text-xs">
                 <span className="rounded-md px-2 py-1 font-semibold" style={{ background: "var(--ok-bg)", color: "var(--ok)" }}>{verdictN("PASS")} pass</span>
-                <span className="rounded-md px-2 py-1 font-semibold" style={{ background: "var(--warn-bg)", color: "var(--warn)" }}>{verdictN("WEAK")} weak</span>
+                <span className="rounded-md px-2 py-1 font-semibold" style={{ background: "var(--warn-bg)", color: "var(--warn-text)" }}>{verdictN("WEAK")} weak</span>
                 <span className="rounded-md px-2 py-1 font-semibold" style={{ background: "var(--danger-bg)", color: "var(--danger)" }}>{verdictN("FAIL")} fail</span>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">Each precomputed answer is scored for groundedness (claims trace to cited sources) and coverage (it answers the request). Weak/fail drafts flag where the corpora or prompt need tuning.</p>

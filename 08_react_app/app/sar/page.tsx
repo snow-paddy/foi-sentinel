@@ -115,7 +115,7 @@ export default async function SarPage({ searchParams }: { searchParams: Promise<
         <PageTitle />
         <Card className="mt-4 p-5">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="size-4" style={{ color: "var(--warn)" }} />
+            <ShieldAlert className="size-4" style={{ color: "var(--warn-text)" }} />
             <h2 className="text-base font-semibold">Awaiting identity verification</h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -161,7 +161,7 @@ export default async function SarPage({ searchParams }: { searchParams: Promise<
                   <td className="px-3 py-2 tabular-nums text-muted-foreground">{f.date}</td>
                   <td className="px-3 py-2">
                     {/contains third-party/i.test(f.thirdPartyFlag)
-                      ? <span className="rounded px-1.5 py-0.5 text-xs font-medium" style={{ color: "var(--warn)", backgroundColor: "var(--warn-bg)" }}>third-party: review</span>
+                      ? <span className="rounded px-1.5 py-0.5 text-xs font-medium" style={{ color: "var(--warn-text)", backgroundColor: "var(--warn-bg)" }}>third-party: review</span>
                       : <span className="rounded px-1.5 py-0.5 text-xs font-medium" style={{ color: "var(--ok)", backgroundColor: "var(--ok-bg)" }}>subject only</span>}
                   </td>
                 </tr>

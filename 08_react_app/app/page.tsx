@@ -48,9 +48,9 @@ async function CommandCentre() {
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground">
         <Scale className="size-3.5 shrink-0" style={{ color: "var(--brand-primary)" }} />
         <span><span className="font-semibold text-foreground">Statutory deadline:</span> respond within <span className="font-semibold text-foreground">20 working days</span></span>
-        <span className="text-border">|</span>
+        <span className="text-border" aria-hidden="true">|</span>
         <span>FOIA 2000 s.10 · EIR 2004 reg.5(2)</span>
-        <span className="text-border">|</span>
+        <span className="text-border" aria-hidden="true">|</span>
         <span>regulator target <span className="font-semibold tnum text-foreground">{target}%</span> answered in time</span>
       </div>
 

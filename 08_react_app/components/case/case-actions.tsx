@@ -45,7 +45,7 @@ export function ClockControl({ reference, clockState }: { reference: string; clo
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Statutory clock</span>
         <span className="inline-flex items-center gap-1 text-xs font-semibold"
-              style={{ color: running ? "var(--ok)" : "var(--warn)" }}>
+              style={{ color: running ? "var(--ok)" : "var(--warn-text)" }}>
           {running ? <PlayCircle className="size-3.5" /> : <PauseCircle className="size-3.5" />}
           {running ? "Running" : "Stopped"}
         </span>

@@ -45,8 +45,8 @@ function EvidenceBase({ rows, total, wdtkAuthorities, council }: { rows: CorpusR
 
   const sections: { id: CorpusGroup; label: string; note: string; accent: string }[] = [
     { id: "records", label: `${council}'s records`, note: "Factual holdings the pipeline cites directly", accent: "var(--brand-primary)" },
-    { id: "logs", label: "Disclosure logs", note: "Previously published answers, used as precedent and for s.21 duplicate detection", accent: "var(--chart-6)" },
-    { id: "guidance", label: "Guidance & legislation", note: "Procedure, regulator guidance and the statutory basis", accent: "var(--warn)" },
+    { id: "logs", label: "Disclosure logs", note: "Previously published answers, used as precedent and for s.21 duplicate detection", accent: "#146c62" },
+    { id: "guidance", label: "Guidance & legislation", note: "Procedure, regulator guidance and the statutory basis", accent: "var(--warn-text)" },
   ]
 
   return (
@@ -118,7 +118,7 @@ function LegislationLibrary({ legislation }: { legislation: LegislationRow[] }) 
               {items.map((l) => {
                 const url = legislationUrl(l.sectionRef)
                 const pit = l.publicInterestTest && (
-                  <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: "var(--warn-bg)", color: "var(--warn)" }}>PIT</span>
+                  <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: "var(--warn-bg)", color: "var(--warn-text)" }}>PIT</span>
                 )
                 const inner = (
                   <>

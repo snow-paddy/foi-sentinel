@@ -49,7 +49,7 @@ export function SarQueue({ rows, selectedRef }: { rows: SarQueueRow[]; selectedR
                 <td className="px-3 py-2 tabular-nums text-muted-foreground">{r.received}</td>
                 <td className="px-3 py-2 tabular-nums text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
-                    <Clock className="size-3" style={{ color: paused ? "var(--warn)" : "var(--muted-foreground)" }} />
+                    <Clock className="size-3" style={{ color: paused ? "var(--warn-text)" : "var(--muted-foreground)" }} />
                     {r.due}{paused ? " (paused)" : ""}
                   </span>
                 </td>
@@ -59,7 +59,7 @@ export function SarQueue({ rows, selectedRef }: { rows: SarQueueRow[]; selectedR
                       <ShieldCheck className="size-3" /> {stageLabel(r.stage, true)}
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium" style={{ color: "var(--warn)", backgroundColor: "var(--warn-bg)" }}>
+                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium" style={{ color: "var(--warn-text)", backgroundColor: "var(--warn-bg)" }}>
                       <ShieldAlert className="size-3" /> {stageLabel(r.stage, false)}
                     </span>
                   )}
