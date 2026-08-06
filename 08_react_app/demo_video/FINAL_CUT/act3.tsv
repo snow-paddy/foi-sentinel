@@ -1,0 +1,14 @@
+1.5	8.5	Subject Access Requests, held pseudonymised until identity is verified
+9.0	13.5	Each on a one calendar month statutory clock
+14.0	22.5	Once identity is verified, officers see the record under Role Based Access Control
+24.5	30.5	A Cortex semantic search spans every data source at once
+37.0	44.0	This SharePoint file names the requester and a third party, flagged for redaction review
+44.5	52.0	The AI clears two documents as the subject's own, flags four for review
+54.0	64.0	Third-party personal data is withheld under the UK GDPR balancing test, never released automatically
+65.0	77.0	Cortex finds each third-party detail with a confidence score
+78.0	88.0	Here every non-requester detail is redacted, the requester's own data is preserved
+89.0	97.5	Officers make the final review, selectively redact, then release
+100.0	115.0	Snowflake connects to SharePoint files through Openflow
+116.0	126.0	Save a new file this morning and it is pulled in within minutes
+127.5	140.0	Refresh, and it is discoverable and flagged for third-party data
+142.0	150.5	Officer decisions are saved and pre-applied when the same detail appears again

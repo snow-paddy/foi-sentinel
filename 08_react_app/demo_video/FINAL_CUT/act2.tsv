@@ -1,0 +1,12 @@
+2	6.5	A member of the public sends a real FOI request
+7.3	10	It lands in the council's shared FOI mailbox in Outlook
+10.3	14	FOI Sentinel pulls it from Outlook through Microsoft Graph
+14.2	19	Straight into Snowflake, with no middleware
+26	37	Run the pipeline and follow every step
+38	43	Classified, then triaged: category, priority, complexity, effort
+43.2	48	It also checks section 14 vexatious and section 21 duplicate
+48.2	72	It matches the council's own records and peer precedent
+78	88	Then drafts a grounded, cited answer
+89	97	And self-checks for groundedness and coverage first
+97.5	101	A ready-to-send letter, every figure traceable to source
+101.5	105	The officer reviews and sends. Nothing leaves without sign-off

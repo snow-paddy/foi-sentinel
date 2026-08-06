@@ -1,0 +1,4 @@
+file '/Users/pgardner/Desktop/Finito/FOI/foi_sentinel_v2/08_react_app/demo_video/FINAL_CUT/.preview2_tmp/p00.mp4'
+file '/Users/pgardner/Desktop/Finito/FOI/foi_sentinel_v2/08_react_app/demo_video/FINAL_CUT/.preview2_tmp/p01.mp4'
+file '/Users/pgardner/Desktop/Finito/FOI/foi_sentinel_v2/08_react_app/demo_video/FINAL_CUT/.preview2_tmp/p02.mp4'
+file '/Users/pgardner/Desktop/Finito/FOI/foi_sentinel_v2/08_react_app/demo_video/FINAL_CUT/.preview2_tmp/p03.mp4'

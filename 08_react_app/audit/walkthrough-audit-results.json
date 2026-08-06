@@ -1,0 +1,77 @@
+[
+  {
+    "id": "US-EU-01",
+    "status": "PASS",
+    "detail": "Command Centre KPIs render numbers"
+  },
+  {
+    "id": "US-EU-08-peer",
+    "status": "PASS",
+    "detail": "peer benchmark card: \"Versus peers (WhatDoTheyKnow): Exampleton Council discloses information on 92% of requests, above the peer median of 73%, ranked 1 of 17\""
+  },
+  {
+    "id": "US-EU-07a",
+    "status": "PASS",
+    "detail": "word cloud: 31 terms, maxCount=9, noName=true, clickable=true"
+  },
+  {
+    "id": "US-EU-07b",
+    "status": "PASS",
+    "detail": "click 'financial' → http://localhost:3000/cases?view=list&keyword=financial"
+  },
+  {
+    "id": "US-EU-07c",
+    "status": "PASS",
+    "detail": "drill-down banner + filtered list"
+  },
+  {
+    "id": "VIS-/",
+    "status": "PASS",
+    "detail": "dark surfaces on /: 0"
+  },
+  {
+    "id": "US-EU-02",
+    "status": "PASS",
+    "detail": "Cases list shows references (true); focus lanes present=true"
+  },
+  {
+    "id": "VIS-/cases",
+    "status": "PASS",
+    "detail": "dark surfaces on /cases: 0"
+  },
+  {
+    "id": "US-EU-03",
+    "status": "PASS",
+    "detail": "case detail: triage panel=true, precedent=true"
+  },
+  {
+    "id": "US-EB-04",
+    "status": "PASS",
+    "detail": "audit trail panel=true, chainVerified=true"
+  },
+  {
+    "id": "US-EB-05",
+    "status": "PASS",
+    "detail": "price card=true, cheaper-line=true"
+  },
+  {
+    "id": "VIS-/cases/[ref]",
+    "status": "PASS",
+    "detail": "dark surfaces on case: 0"
+  },
+  {
+    "id": "US-EU-05",
+    "status": "PASS",
+    "detail": "evidence-base / corpus cards render=true"
+  },
+  {
+    "id": "US-EU-05b",
+    "status": "PASS",
+    "detail": "search 'personal data' → cross-authority precedent results=true"
+  },
+  {
+    "id": "VIS-/guidance",
+    "status": "PASS",
+    "detail": "dark surfaces on /guidance: 0"
+  }
+]

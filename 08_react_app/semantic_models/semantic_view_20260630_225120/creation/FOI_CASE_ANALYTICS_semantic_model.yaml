@@ -1,0 +1,109 @@
+name: FOI_CASE_ANALYTICS
+description: Operational analytics over Exampleton Council FOI, EIR and SAR cases.
+  Tracks open versus closed cases, statutory-deadline performance (working days remaining,
+  overdue, answered in time), RAG risk, priority band and score, AI triage complexity
+  and requester sentiment, by regime, lifecycle stage, owning department, assigned
+  officer and outcome. Synthetic test cases are flagged by IS_SYNTHETIC and should
+  normally be excluded.
+tables:
+  - name: V_CASE
+    base_table:
+      database: FOI
+      schema: FOI_SENTINEL_V2
+      table: V_CASE
+    dimensions:
+      - name: CASE_ID
+        expr: CASE_ID
+        data_type: VARCHAR
+      - name: REFERENCE
+        expr: REFERENCE
+        data_type: VARCHAR
+      - name: SOURCE
+        expr: SOURCE
+        data_type: VARCHAR
+      - name: REQUESTER_ORGANISATION
+        expr: REQUESTER_ORGANISATION
+        data_type: VARCHAR
+      - name: REGIME
+        expr: REGIME
+        data_type: VARCHAR
+      - name: CURRENT_STAGE
+        expr: CURRENT_STAGE
+        data_type: VARCHAR
+      - name: STATUS
+        expr: STATUS
+        data_type: VARCHAR
+      - name: OWNING_DEPARTMENT
+        expr: OWNING_DEPARTMENT
+        data_type: VARCHAR
+      - name: ASSIGNED_OFFICER
+        expr: ASSIGNED_OFFICER
+        data_type: VARCHAR
+      - name: CLOCK_STATE
+        expr: CLOCK_STATE
+        data_type: VARCHAR
+      - name: WORKING_DAYS_USED
+        expr: WORKING_DAYS_USED
+        data_type: NUMBER
+      - name: OUTCOME
+        expr: OUTCOME
+        data_type: VARCHAR
+      - name: ANSWERED_IN_TIME
+        expr: ANSWERED_IN_TIME
+        data_type: BOOLEAN
+      - name: IS_PUBLISHED
+        expr: IS_PUBLISHED
+        data_type: BOOLEAN
+      - name: IS_VEXATIOUS
+        expr: IS_VEXATIOUS
+        data_type: BOOLEAN
+      - name: SUBJECT
+        expr: SUBJECT
+        data_type: VARCHAR
+      - name: IS_SYNTHETIC
+        expr: IS_SYNTHETIC
+        data_type: BOOLEAN
+      - name: STAGE_NAME
+        expr: STAGE_NAME
+        data_type: VARCHAR
+      - name: STAGE_ORDER
+        expr: STAGE_ORDER
+        data_type: NUMBER
+      - name: LEGAL_BASIS
+        expr: LEGAL_BASIS
+        data_type: VARCHAR
+      - name: WD_REMAINING
+        expr: WD_REMAINING
+        data_type: NUMBER
+      - name: RAG
+        expr: RAG
+        data_type: VARCHAR
+      - name: PRIORITY_BAND
+        expr: PRIORITY_BAND
+        data_type: VARCHAR
+    time_dimensions:
+      - name: RECEIVED_DATE
+        expr: RECEIVED_DATE
+        data_type: DATE
+      - name: STATUTORY_DEADLINE
+        expr: STATUTORY_DEADLINE
+        data_type: DATE
+      - name: CLOSED_DATE
+        expr: CLOSED_DATE
+        data_type: DATE
+      - name: CREATED_AT
+        expr: CREATED_AT
+        data_type: TIMESTAMP_NTZ
+    facts:
+      - name: SENTIMENT_SCORE
+        expr: SENTIMENT_SCORE
+        data_type: FLOAT
+      - name: COMPLEXITY_RANK
+        expr: COMPLEXITY_RANK
+        data_type: FLOAT
+      - name: URGENCY_SCORE
+        expr: URGENCY_SCORE
+        data_type: FLOAT
+      - name: PRIORITY_SCORE
+        expr: PRIORITY_SCORE
+        data_type: FLOAT

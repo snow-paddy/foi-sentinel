@@ -1,0 +1,42 @@
+# === Dependencies ===
+node_modules/
+
+# === Build output ===
+.next/
+out/
+output/
+*.tsbuildinfo
+__pycache__/
+*.pyc
+
+# === Secrets and local config ===
+# Credentials must never be committed. Snowflake credentials live in
+# ~/.snowflake/connections.toml; Microsoft credentials live in a Snowflake SECRET.
+.env
+.env.*
+!.env.example
+connections.toml
+*.p8
+*.pem
+*.key
+*.pfx
+
+# === Logs ===
+*.log
+snowflake.log
+
+# === Recordings and large media ===
+# Demo footage is rebuildable and bloats history; keep the scripts, drop the output.
+*.mp4
+*.mkv
+*.webm
+demo_video/out/
+demo_video/FINAL_CUT/
+
+# === OS noise ===
+.DS_Store
+Thumbs.db
+
+# NOTE: package-lock.json is deliberately NOT ignored. The Snowflake App Runtime
+# build runs `npm ci --include=dev` (see 08_react_app/app.yml), which fails
+# without a committed lockfile.

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "US-EU-01",
+    "status": "PASS",
+    "detail": "Command Centre KPIs render numbers"
+  },
+  {
+    "id": "US-EU-07a",
+    "status": "PASS",
+    "detail": "word cloud: 27 terms, maxCount=9 (<100 ok), noName=true, clickable=true"
+  },
+  {
+    "id": "US-EU-07b",
+    "status": "PASS",
+    "detail": "click 'financial' → http://localhost:3100/cases?view=list&keyword=financial"
+  },
+  {
+    "id": "US-EU-07c",
+    "status": "PASS",
+    "detail": "drill-down banner + list (6 requests)"
+  },
+  {
+    "id": "VIS-/",
+    "status": "PASS",
+    "detail": "dark surfaces on /: 0"
+  },
+  {
+    "id": "US-CH-03",
+    "status": "PASS",
+    "detail": "/redaction → http://localhost:3100/sar"
+  },
+  {
+    "id": "US-EU-06a",
+    "status": "PASS",
+    "detail": "studio embedded in /sar, no link-out (embedded=true, noLinkOut=true)"
+  },
+  {
+    "id": "US-EU-06b",
+    "status": "PASS",
+    "detail": "released doc: REDACTED markers=true, panelMaxH=640px"
+  },
+  {
+    "id": "US-EU-06c",
+    "status": "PASS",
+    "detail": "Confirm & release → decisions saved chip=true"
+  },
+  {
+    "id": "VIS-/sar",
+    "status": "PASS",
+    "detail": "dark surfaces on /sar: 0"
+  },
+  {
+    "id": "US-EU-04b",
+    "status": "PASS",
+    "detail": "Intake Outlook Test tab + waiting inbox + run control render"
+  },
+  {
+    "id": "US-EB-04",
+    "status": "PASS",
+    "detail": "A6 panel=true, chainVerified=true, decisions+hashes=true"
+  }
+]

@@ -1,0 +1,31 @@
+1	4	Every FOI, EIR and SAR request in one live view
+4	6.5	On the twenty working day statutory clock
+6.5	9.5	An SLA gauge against the ICO's in-time target
+10	14	And how we compare to peers on WhatDoTheyKnow
+15	21	The five-step statutory FOIA process, from receipt to disclosure
+22	28	Open a stage to see its breakdown and at-risk flags
+29	37	Cortex surfaces the most frequent themes, ranked or as a word cloud
+40	46	Click a term to see every case behind it
+49	60	It flags repeat requesters and possible section 14, kept pseudonymised
+71	88.5	Triaged into three lanes: quick wins, needs review, complex
+89.5	96.5	The same caseload as a board across the statutory process
+96.5	105.5	Complexity and precedent match, scored by Cortex similarity
+117.5	123	Cases challenged to the ICO are flagged automatically and held apart, keeping live appeals in clear view
+123.5	132.5	Move a case on and the stage advances, logged to audit
+151.5	158	Open a case for the full draft, evidence and audit trail
+158	168	The AI drafts every case. Needs review flags the judgement calls
+170	175	This case is a partial, as we can release the yearly totals but withhold the breakdown
+176	182	Full breakdowns are withheld under section 40 to protect individuals
+183	190	Verified source of record: every figure traces to the council's Snowflake tables
+200	209	Every AI decision hash-chained and tamper-evident
+215	231	Complex cases are multi-faceted requests that turn on an officer's judgement
+238	252.5	Quick wins: low-complexity requests with a strong precedent
+253	260.5	Two are section 21, already published. Signpost, do not answer twice
+261	266.5	Send the batch. Nothing leaves until the officer confirms
+267	274	Each case closes and lands on the disclosure log
+279	284	The knowledge base the pipeline retrieves against
+285.5	293.5	Peer disclosure logs, from authorities handling similar requests, ground the cross-authority precedent match
+303.5	320	The legislation library links straight to legislation.gov.uk
+321.5	327	Search it the way the AI does, grounded in real cases
+327.5	332.5	Cortex semantic search finds questions already answered and flags a section 21
+340	346.5	Nothing cited is invented. Every answer traces back here

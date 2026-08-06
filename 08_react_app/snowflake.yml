@@ -1,0 +1,29 @@
+definition_version: "2"
+
+entities:
+  foi_sentinel_app:
+    type: snowflake-app
+    identifier:
+      name: FOI_SENTINEL_APP
+      database: FOI
+      schema: APPS
+    artifacts:
+      - src: ./*
+        dest: ./
+        ignore:
+          - node_modules
+          - .env*
+          - __pycache__
+          - "*.pyc"
+          - .next
+          - .git
+          - snowflake.log
+          - demo_video
+          - audit
+          - output
+          - "*.mkv"
+          - "*.webm"
+          - "*.mp4"
+
+    query_warehouse: FOI_WH
+    code_stage: FOI_SENTINEL_APP_CODE

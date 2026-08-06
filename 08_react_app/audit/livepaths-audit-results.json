@@ -1,0 +1,32 @@
+[
+  {
+    "id": "US-EU-04b",
+    "status": "PASS",
+    "detail": "Intake Outlook Test tab + waiting inbox + Run the pipeline control render"
+  },
+  {
+    "id": "US-EU-06a",
+    "status": "PASS",
+    "detail": "SAR findings + embedded studio present (findings=true, studio=true)"
+  },
+  {
+    "id": "US-EU-06b",
+    "status": "PASS",
+    "detail": "Run AI redaction → findings + released doc REDACTED markers=true"
+  },
+  {
+    "id": "US-EU-06d",
+    "status": "PASS",
+    "detail": "untick council officer email kept: \"Redact thomas.lee@exampleton.gov.uk\""
+  },
+  {
+    "id": "US-EU-06c",
+    "status": "PASS",
+    "detail": "Confirm & release → \"decisions saved\" chip=true"
+  },
+  {
+    "id": "US-EU-06e",
+    "status": "PASS",
+    "detail": "Re-run → \"Learned from N prior decisions\"=true, \"kept last time\"=true"
+  }
+]

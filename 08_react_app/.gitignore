@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+output/
+*.tsbuildinfo
+.env.local
+*.log
+.DS_Store
+# package-lock.json is intentionally tracked: app.yml runs `npm ci --include=dev`,
+# which requires a committed lockfile. Do not add it here.
