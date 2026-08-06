@@ -3044,11 +3044,16 @@ async function benchmarkAgainstPeers(q: string, draft: string): Promise<IntakePi
  * draft (generateResponse → getResponses). Returns every stage's real output so
  * the Intake "notebook" can render them.
  */
-export async function runIntakePipeline(reference: string): Promise<IntakePipelineResult> {
+export async function runIntakePipeline(
+  reference: string,
+  onStage?: (stage: string) => void,
+): Promise<IntakePipelineResult> {
+  const stage = (s: string) => onStage?.(s)
   const empty: IntakePipelineResult = {
     reference, ok: false, classification: "", triage: null, precedents: [],
     answer: "", answerGrounded: false, evaluation: null, draft: "", benchmark: null,
   }
+  stage("reading the triage")
   const rows = await querySnowflake(`
     SELECT c.CASE_ID, c.REGIME, c.SUBJECT, c.REQUEST_TEXT,
            t.TRIAGE_JSON:category::string AS CATEGORY,
@@ -3082,16 +3087,19 @@ export async function runIntakePipeline(reference: string): Promise<IntakePipeli
   }
 
   // Stages 3-5: grounded answer (sources = closest prior requests) + LLM-judge eval.
+  stage("finding precedents and grounding an answer")
   const ev = await precomputeSuggestedAnswer(reference)
   const sa = await getSuggestedAnswer(reference)
 
   // Stage 6: compliant draft, of the outcome type triage suggests.
+  stage("drafting the response")
   const { type: intakeType } = await suggestedResponseType(reference)
   await generateResponse(reference, intakeType)
   const drafts = await getResponses(caseId)
   const draft = (drafts[0]?.finalText || drafts[0]?.draftText || "").trim()
 
   // Stage 6b: benchmark the draft against a real peer disclosure (Camden / GLA).
+  stage("benchmarking against a peer disclosure")
   const benchQ = `${String(r.SUBJECT ?? "")} ${String(r.REQUEST_TEXT ?? "")}`.trim().slice(0, 1200)
   const benchmark = await benchmarkAgainstPeers(benchQ, draft)
 

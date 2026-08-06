@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { Loader2, ShieldCheck, Play, ChevronDown, FileText, Eye, Lock, Sparkles } from "lucide-react"
 import type { RedactionDemoDoc, RedactionDemoResult, RedactionFinding } from "@/lib/queries"
+import { runJob } from "@/lib/job-client"
 
 const CATEGORY_LABEL: Record<string, string> = {
   NAME: "Name",
@@ -87,11 +88,11 @@ export function RedactionStudio({ doc }: { doc: RedactionDemoDoc }) {
     setError(null)
     setReleased(false)
     try {
-      const res = await fetch("/api/redaction/demo/run", { method: "POST" })
-      const data = (await res.json()) as { ok: boolean; result?: RedactionDemoResult; error?: string }
-      if (!data.ok || !data.result) throw new Error(data.error ?? "Redaction failed")
-      setResult(data.result)
-      setDecisions(data.result.findings.map(defaultRedact))
+      // Submitted as a job and polled: a cold run parses the PDF and then extracts
+      // from it, which takes minutes — far past the 90-second SPCS ingress limit.
+      const result = await runJob<RedactionDemoResult>("/api/redaction/demo/run")
+      setResult(result)
+      setDecisions(result.findings.map(defaultRedact))
     } catch (e) {
       setError(e instanceof Error ? e.message : "Redaction failed")
     } finally {

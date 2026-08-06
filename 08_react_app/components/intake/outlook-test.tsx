@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
+import { runJob, JobLostError } from "@/lib/job-client"
 import {
   Inbox, Mail, Loader2, RefreshCw, Play, CheckCircle2, AlertTriangle,
   ArrowRight, Sparkles, Star, Lightbulb, Gavel, FileText, Cloud, ChevronDown, ExternalLink,
@@ -92,6 +93,7 @@ export function OutlookTest({ mailbox }: { mailbox: string }) {
   const [caseRef, setCaseRef] = useState<string | null>(null)
   const [pipeline, setPipeline] = useState<Pipeline | null>(null)
   const [note, setNote] = useState<string | null>(null)
+  const [stage, setStage] = useState<string | null>(null)
   const [openStep, setOpenStep] = useState<number | null>(null)
   const [openMsg, setOpenMsg] = useState<string | null>(null)
 
@@ -109,70 +111,68 @@ export function OutlookTest({ mailbox }: { mailbox: string }) {
   useEffect(() => { peek() }, [peek])
 
   async function runPipeline() {
-    setRunning(true); setError(null); setNote(null); setPipeline(null); setCaseRef(null); setRevealed(0)
+    setRunning(true); setError(null); setNote(null); setPipeline(null); setCaseRef(null); setRevealed(0); setStage(null)
 
-    // Parse JSON defensively: a timed-out request returns an HTML gateway page, and
-    // res.json() would throw — which previously surfaced as a misleading
-    // "could not reach the pipeline endpoint" regardless of which step actually failed.
+    // Parse JSON defensively: a gateway error page is HTML, and res.json() would throw.
     const readJson = async (res: Response): Promise<Record<string, unknown> | null> => {
       try { return (await res.json()) as Record<string, unknown> } catch { return null }
     }
 
+    // The poll marks mail as read as it goes, so a run we lose track of may still
+    // have produced a real, triaged case. Find it rather than dead-ending.
+    const recoverCase = async (): Promise<string | null> => {
+      try {
+        const latestRes = await fetch("/api/intake/latest", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ withinMinutes: 20 }) })
+        const latest = await readJson(latestRes)
+        const found = latest?.case as { reference?: string } | null | undefined
+        return found?.reference ?? null
+      } catch { return null }
+    }
+
     let ref: string | null = null
     try {
-      // Step 1 — poll the mailbox. This can exceed the ingress timeout even though it
-      // succeeds server-side, so a failure here is not conclusive; we check for the
-      // case it would have created before giving up.
-      let sync: Record<string, unknown> | null = null
+      // Step 1 — submit the mailbox poll, then poll for the job. Every request is
+      // short, so the work can take as long as it needs without the 90-second
+      // SPCS ingress limit cutting it off mid-run.
       try {
-        const syncRes = await fetch("/api/intake/sync", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({}) })
-        sync = await readJson(syncRes)
-        if (syncRes.ok && sync?.ok) {
-          const cases = (sync.newCases as NewCase[] | undefined) ?? []
-          if (!cases.length) {
-            setNote(`Polled ${sync.polled ?? 0} email(s). No new cases (already ingested). Send a fresh email and try again.`)
-            setRunning(false); peek(); return
-          }
-          ref = cases[0].reference
-        } else if (sync && !sync.ok && typeof sync.error === "string") {
-          setError(`Mailbox sync failed: ${sync.error}`); setRunning(false); peek(); return
+        const sync = await runJob<{ polled?: number; newCases?: NewCase[] }>("/api/intake/sync", {}, {
+          onStage: (s) => setStage(`Intake — ${s}`),
+        })
+        const cases = sync.newCases ?? []
+        if (!cases.length) {
+          setNote(`Polled ${sync.polled ?? 0} email(s). No new cases (already ingested). Send a fresh email and try again.`)
+          setRunning(false); setStage(null); peek(); return
         }
-      } catch {
-        // Network/connection failure on the sync call — fall through to recovery.
-      }
-
-      // Recovery: the poll may have completed and created a case even though the
-      // response never reached us. Look for it rather than dead-ending.
-      if (!ref) {
-        setNote("The mailbox poll did not return in time. Checking whether a case was created…")
-        try {
-          const latestRes = await fetch("/api/intake/latest", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ withinMinutes: 20 }) })
-          const latest = await readJson(latestRes)
-          const found = latest?.case as { reference?: string } | null | undefined
-          if (found?.reference) {
-            ref = found.reference
-            setNote(`Recovered case ${ref} — the poll had completed. Continuing the pipeline.`)
-          }
-        } catch { /* fall through to the error below */ }
+        ref = cases[0].reference
+      } catch (e) {
+        // Only recover when we have genuinely lost track of the run. A reported
+        // failure (e.g. Graph refused) is conclusive, and recovering from it would
+        // risk presenting an unrelated earlier case as this run's result.
+        if (e instanceof JobLostError) {
+          setNote("Lost track of the mailbox poll. Checking whether a case was created…")
+          ref = await recoverCase()
+          if (ref) setNote(`Recovered case ${ref} — the poll had completed. Continuing the pipeline.`)
+        } else {
+          const msg = e instanceof Error ? e.message : String(e)
+          setError(`Mailbox sync failed: ${msg}`)
+          setRunning(false); setStage(null); peek(); return
+        }
       }
 
       if (!ref) {
         setError("Mailbox poll did not complete and no new case was found. The poll can take over a minute; wait a moment and try again.")
-        setRunning(false); peek(); return
+        setRunning(false); setStage(null); peek(); return
       }
 
       setCaseRef(ref)
       setRevealed(1) // intake done
 
-      // Step 2 — downstream pipeline.
-      const pipeRes = await fetch("/api/intake/pipeline", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ reference: ref }) })
-      const pipe = await readJson(pipeRes)
-      if (!pipeRes.ok || !pipe?.ok) {
-        const detail = pipe && typeof pipe.error === "string" ? pipe.error : `HTTP ${pipeRes.status}`
-        setError(`Pipeline failed for ${ref}: ${detail}. The case exists — open it and use "Suggest an answer" to continue.`)
-        setRunning(false); peek(); return
-      }
-      setPipeline(pipe as unknown as Pipeline)
+      // Step 2 — submit the downstream pipeline and follow its reported stages.
+      const pipe = await runJob<Pipeline>("/api/intake/pipeline", { reference: ref }, {
+        onStage: (s) => setStage(`Pipeline — ${s}`),
+      })
+      setPipeline(pipe)
+      setStage(null)
 
       // Notebook-style progressive reveal of stages 2..6.
       for (let n = 2; n <= 6; n++) { await sleep(750); setRevealed(n) }
@@ -184,6 +184,7 @@ export function OutlookTest({ mailbox }: { mailbox: string }) {
         : `Intake failed before a case was created: ${msg}`)
     } finally {
       setRunning(false)
+      setStage(null)
     }
   }
 
@@ -265,6 +266,7 @@ export function OutlookTest({ mailbox }: { mailbox: string }) {
             {running ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
             {running ? "Running the pipeline\u2026" : `Run the pipeline on ${waiting.length || "these"} email${waiting.length === 1 ? "" : "s"}`}
           </button>
+          {stage && <p className="mt-2 text-xs" style={{ color: "var(--brand-primary)" }}>{stage}</p>}
           {note && <p className="mt-2 text-xs text-muted-foreground">{note}</p>}
           {!hasMail && !running && !note && <p className="mt-1.5 text-xs text-muted-foreground">The button activates once there is unread mail to process.</p>}
         </div>
