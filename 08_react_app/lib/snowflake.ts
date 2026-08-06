@@ -48,6 +48,34 @@ snowflake.configure({
   ...(process.env.SNOWFLAKE_SDK_DISABLE_OCSP === "true" && { disableOCSPChecks: true, ocspFailOpen: true }),
 })
 
+/** Fallback actor when there is no ingress identity (local `next dev`). */
+const FALLBACK_ACTOR = "FOI Officer"
+
+/**
+ * The Snowflake user behind the current request.
+ *
+ * Snowflake sets the `Sf-Context-Current-User` header on every request to a
+ * public SPCS endpoint, and this is the ONLY safe source of identity for this
+ * application: CURRENT_USER, CURRENT_ROLE and CURRENT_SESSION all throw an
+ * exception inside procedures owned by a Snowflake Native App, so identity can
+ * never be derived in SQL. It must be read here and passed into SQL as a value.
+ *
+ * Returns FOI_FALLBACK_ACTOR (default "FOI Officer") when no header is present
+ * — local development, or any call made outside a request scope, where
+ * `headers()` throws. That keeps local runs working without silently attributing
+ * actions to a real person.
+ */
+export async function currentActor(): Promise<string> {
+  const fallback = process.env.FOI_FALLBACK_ACTOR?.trim() || FALLBACK_ACTOR
+  try {
+    const name = ((await headers()).get("sf-context-current-user") ?? "").trim()
+    // Cap the length: this value is written to audit columns.
+    return name ? name.slice(0, 120) : fallback
+  } catch {
+    return fallback
+  }
+}
+
 const SPCS_TOKEN_PATH = "/snowflake/session/token"
 
 const LOG_PREFIX = "[snowflake]"

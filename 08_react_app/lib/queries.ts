@@ -1,4 +1,4 @@
-import { querySnowflake, querySnowflakeLongRunning } from "@/lib/snowflake"
+import { querySnowflake, querySnowflakeLongRunning, currentActor } from "@/lib/snowflake"
 import { SCHEMA, SAR_INGEST_SCHEMA } from "@/lib/constants"
 
 /**
@@ -655,11 +655,12 @@ export async function setCaseClock(
   if (!caseId) return { ok: false }
   if (action === "stop") {
     const r = reason && CLOCK_STOP_REASONS.has(reason) ? reason : "STOPPED_CLARIFICATION"
+    const actor = await currentActor()
     await querySnowflake(
-      `CALL ${SCHEMA}.SP_STOP_CLOCK('${esc(caseId)}', '${esc(r)}', 'FOI Officer', 'Clock stopped from case page')`,
+      `CALL ${SCHEMA}.SP_STOP_CLOCK('${esc(caseId)}', '${esc(r)}', '${escLit(actor)}', 'Clock stopped from case page')`,
     )
   } else {
-    await querySnowflake(`CALL ${SCHEMA}.SP_RESUME_CLOCK('${esc(caseId)}', 'FOI Officer')`)
+    await querySnowflake(`CALL ${SCHEMA}.SP_RESUME_CLOCK('${esc(caseId)}', '${escLit(await currentActor())}')`)
   }
   return { ok: true }
 }
@@ -689,7 +690,7 @@ export async function decideExemption(
   const d = decision === "apply" ? "APPLY" : "DO_NOT_APPLY"
   await querySnowflake(`
     UPDATE ${SCHEMA}.FOI_EXEMPTION_ASSESSMENT
-    SET DECISION = '${d}', DECIDED_BY = 'FOI Officer', DECIDED_AT = CURRENT_TIMESTAMP()
+    SET DECISION = '${d}', DECIDED_BY = '${escLit(await currentActor())}', DECIDED_AT = CURRENT_TIMESTAMP()
     WHERE ASSESSMENT_ID = '${esc(assessmentId)}' AND CASE_ID = '${esc(caseId)}'
   `)
   return { ok: true }
@@ -701,7 +702,7 @@ export async function verifyFoiRedaction(reference: string, redactionId: string)
   if (!caseId) return { ok: false }
   await querySnowflake(`
     UPDATE ${SCHEMA}.FOI_REDACTION
-    SET VERIFIED = TRUE, VERIFIED_BY = 'FOI Officer'
+    SET VERIFIED = TRUE, VERIFIED_BY = '${escLit(await currentActor())}'
     WHERE REDACTION_ID = '${esc(redactionId)}' AND CASE_ID = '${esc(caseId)}'
   `)
   return { ok: true }
@@ -821,7 +822,7 @@ export async function saveResponseFinal(reference: string, responseId: string, f
   if (!caseId) return { ok: false }
   await querySnowflake(`
     UPDATE ${SCHEMA}.FOI_RESPONSE
-    SET FINAL_TEXT = '${escLit(finalText)}', SIGNED_OFF_BY = 'FOI Officer'
+    SET FINAL_TEXT = '${escLit(finalText)}', SIGNED_OFF_BY = '${escLit(await currentActor())}'
     WHERE RESPONSE_ID = '${esc(responseId)}' AND CASE_ID = '${esc(caseId)}'
   `)
   // A5 learning loop: record how much the officer changed the AI draft (EDITDISTANCE).
@@ -868,7 +869,7 @@ export async function dispatchResponse(
     WHERE CASE_ID = '${esc(caseId)}'
   `)
   await querySnowflake(
-    `CALL ${SCHEMA}.SP_ADVANCE_STAGE('${esc(caseId)}', 'DISPATCH', 'HUMAN', 'FOI Officer', '${escLit(eventNote)}')`,
+    `CALL ${SCHEMA}.SP_ADVANCE_STAGE('${esc(caseId)}', 'DISPATCH', 'HUMAN', '${escLit(await currentActor())}', '${escLit(eventNote)}')`,
   )
   return { ok: true }
 }
@@ -1721,7 +1722,7 @@ export async function advanceCaseToPhase(reference: string, toPhase: string): Pr
   if (!caseId || current === target) return null
 
   await querySnowflake(
-    `CALL ${SCHEMA}.SP_ADVANCE_STAGE('${esc(caseId)}', '${esc(target)}', 'HUMAN', 'FOI Officer', 'Moved on board (drag)')`,
+    `CALL ${SCHEMA}.SP_ADVANCE_STAGE('${esc(caseId)}', '${esc(target)}', 'HUMAN', '${escLit(await currentActor())}', 'Moved on board (drag)')`,
   )
   const nameRows = await querySnowflake(`
     SELECT STAGE_NAME FROM ${SCHEMA}.LIFECYCLE_STAGE WHERE STAGE_CODE = '${esc(target)}' LIMIT 1
@@ -1774,7 +1775,7 @@ export async function setCaseStage(reference: string, toStage: string): Promise<
   if (!caseId || current === toStage) return null // no-op
 
   await querySnowflake(
-    `CALL ${SCHEMA}.SP_ADVANCE_STAGE('${esc(caseId)}', '${esc(toStage)}', 'HUMAN', 'FOI Officer', 'Stage set via case page')`,
+    `CALL ${SCHEMA}.SP_ADVANCE_STAGE('${esc(caseId)}', '${esc(toStage)}', 'HUMAN', '${escLit(await currentActor())}', 'Stage set via case page')`,
   )
   return { stage: toStage, stageName }
 }
@@ -1942,7 +1943,7 @@ export async function markPrecedent(reference: string, action: "use" | "review")
   `)
   if (!exists.length) return null
 
-  const officer = "FOI Officer"
+  const officer = await currentActor()
   if (action === "use") {
     await querySnowflake(`
       UPDATE ${SCHEMA}.FOI_PRECEDENT_MATCH
@@ -4022,7 +4023,7 @@ export async function publishCase(reference: string, topic: string): Promise<{ o
   if (!caseId) return { ok: false }
   await querySnowflake(`
     INSERT INTO ${SCHEMA}.FOI_DISCLOSURE_PUBLICATION (CASE_ID, REFERENCE_NUMBER, PUBLICATION_DATE, TOPIC, SUMMARY, PUBLISHED_BY)
-    SELECT CASE_ID, REFERENCE, CURRENT_DATE(), '${escLit(topic)}', LEFT(REQUEST_TEXT, 200), 'FOI Officer'
+    SELECT CASE_ID, REFERENCE, CURRENT_DATE(), '${escLit(topic)}', LEFT(REQUEST_TEXT, 200), '${escLit(await currentActor())}'
     FROM ${SCHEMA}.FOI_CASE WHERE REFERENCE = '${esc(reference)}'
   `)
   await querySnowflake(`UPDATE ${SCHEMA}.FOI_CASE SET IS_PUBLISHED = TRUE WHERE REFERENCE = '${esc(reference)}'`)
