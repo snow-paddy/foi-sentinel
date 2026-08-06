@@ -26,6 +26,7 @@ const MORE_GROUPS: { heading: string; items: { href: string; label: string }[] }
   {
     heading: "System",
     items: [
+      { href: "/connections", label: "Connections & Security" },
       { href: "/learning", label: "Tuning & Learning" },
       { href: "/admin", label: "Admin" },
       { href: "/about", label: "About" },
