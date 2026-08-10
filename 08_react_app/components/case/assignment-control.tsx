@@ -91,7 +91,7 @@ export function AssignmentControl({ reference }: { reference: string }) {
         <span className="text-sm font-semibold">Assignment</span>
         {assignment ? (
           <span className="rounded-full border border-border px-2 py-0.5 text-xs">
-            {assignment.officerName} <span className="text-muted-foreground">· {assignment.persona}</span>
+            {assignment.persona} <span className="text-muted-foreground">· {assignment.officerName}</span>
           </span>
         ) : (
           <span className="text-xs text-muted-foreground">Unassigned</span>
@@ -143,8 +143,8 @@ export function AssignmentControl({ reference }: { reference: string }) {
                 {o.initials}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-medium">{o.name}</span>
-                <span className="block truncate text-[11px] text-muted-foreground">{o.persona}</span>
+                <span className="block font-medium">{o.persona}</span>
+                <span className="block truncate text-[11px] text-muted-foreground">{o.name}</span>
               </span>
             </button>
           ))}

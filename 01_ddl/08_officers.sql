@@ -15,24 +15,22 @@ CREATE OR REPLACE TABLE FOI_OFFICER (
 );
 
 INSERT INTO FOI_OFFICER (NAME, PERSONA, DEPARTMENT, INITIALS) VALUES
- ('Sam Okafor',   'FOI / Information Governance Officer', 'Information Governance', 'SO'),
- ('Dev Sharma',   'Data Protection / SAR Officer',        'Information Governance', 'DS'),
- ('Priya Patel',  'Service contact (SPOC)',               'Adult Social Care',      'PP'),
- ('James Reid',   'Service contact (SPOC)',               'Planning',               'JR'),
- ('Aisha Khan',   'Service contact (SPOC)',               'Finance',                'AK'),
- ('Maria Conti',  'Senior / Independent Reviewer',        'Information Governance', 'MC'),
- ('Tom Bennett',  'Information Governance Manager',        'Information Governance', 'TB');
+ ('Paddy Gardner', 'FOI / Information Governance Officer', 'Information Governance', 'PG'),
+ ('Sarah',         'Data Protection / SAR Officer',        'Information Governance', 'SA'),
+ ('Spencer',       'Service contact (SPOC)',               'Adult Social Care',      'SP'),
+ ('Roger',         'Senior / Independent Reviewer',        'Information Governance', 'RO'),
+ ('Izzy',          'Information Governance Manager',        'Information Governance', 'IZ');
 
 -- Assign existing open cases to a sensible officer (deterministic, demo-friendly).
 UPDATE FOI_CASE SET ASSIGNED_OFFICER = CASE
-    WHEN REGIME = 'SAR'                                              THEN 'Dev Sharma'
-    WHEN CURRENT_STAGE = 'REVIEW'                                   THEN 'Maria Conti'
+    WHEN REGIME = 'SAR'                                              THEN 'Sarah'
+    WHEN CURRENT_STAGE = 'REVIEW'                                   THEN 'Roger'
     WHEN OWNING_DEPARTMENT ILIKE '%social care%'
       OR OWNING_DEPARTMENT ILIKE '%adult%'
-      OR OWNING_DEPARTMENT ILIKE '%children%'                       THEN 'Priya Patel'
-    WHEN OWNING_DEPARTMENT ILIKE '%planning%'
-      OR OWNING_DEPARTMENT ILIKE '%environment%'                    THEN 'James Reid'
-    WHEN OWNING_DEPARTMENT ILIKE '%financ%'
-      OR OWNING_DEPARTMENT ILIKE '%revenue%'                        THEN 'Aisha Khan'
-    ELSE 'Sam Okafor' END
+      OR OWNING_DEPARTMENT ILIKE '%children%'
+      OR OWNING_DEPARTMENT ILIKE '%planning%'
+      OR OWNING_DEPARTMENT ILIKE '%environment%'
+      OR OWNING_DEPARTMENT ILIKE '%financ%'
+      OR OWNING_DEPARTMENT ILIKE '%revenue%'                        THEN 'Spencer'
+    ELSE 'Paddy Gardner' END
 WHERE STATUS = 'OPEN';

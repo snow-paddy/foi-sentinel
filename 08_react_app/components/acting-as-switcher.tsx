@@ -70,7 +70,7 @@ export function ActingAsSwitcher() {
     }
   }
 
-  const label = current?.name ?? "Choose officer"
+  const label = current?.persona ?? "Choose role"
 
   return (
     <div className="relative" ref={ref}>
@@ -83,7 +83,8 @@ export function ActingAsSwitcher() {
       >
         <UserCog className="size-3.5" style={{ color: "var(--brand-primary)" }} />
         <span className="hidden sm:inline">Acting as:</span>
-        <span className="font-semibold text-foreground">{label}</span>
+        <span className="max-w-[200px] truncate font-semibold text-foreground">{label}</span>
+        {current?.name && <span className="hidden text-muted-foreground md:inline">· {current.name}</span>}
         <ChevronDown className="size-3.5" />
       </button>
       {open && (
@@ -109,8 +110,8 @@ export function ActingAsSwitcher() {
                   {o.initials}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-medium text-foreground">{o.name}</span>
-                  <span className="block truncate text-[11px] text-muted-foreground">{o.persona}</span>
+                  <span className="block font-medium text-foreground">{o.persona}</span>
+                  <span className="block truncate text-[11px] text-muted-foreground">{o.name}</span>
                 </span>
                 {active && <Check className="mt-0.5 size-3.5 shrink-0" style={{ color: "var(--ok)" }} />}
               </button>
