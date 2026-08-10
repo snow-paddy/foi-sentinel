@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { AssignmentControl } from "@/components/case/assignment-control"
 import {
   ArrowLeft, Scale, Clock, Briefcase, Building2, FileText, History,
   Flag, PoundSterling, AlertTriangle, CheckCircle2, PauseCircle, Info,
@@ -180,6 +181,11 @@ async function CaseView({ params }: { params: Params }) {
         <Scale className="size-3.5 shrink-0" style={{ color: "var(--brand-primary)" }} />
         <span>{detail.regime === "EIR" ? "EIR 2004 reg.5(2)" : detail.regime === "SAR" ? "UK GDPR Art.12 / DPA 2018" : "FOIA 2000 s.10"}</span>
         {detail.legalBasis && (<><span className="text-border" aria-hidden="true">|</span><span>{detail.legalBasis}</span></>)}
+      </div>
+
+      {/* Assignment (claim / reassign / release) */}
+      <div className="mt-3">
+        <AssignmentControl reference={detail.reference} />
       </div>
 
       {/* Header */}

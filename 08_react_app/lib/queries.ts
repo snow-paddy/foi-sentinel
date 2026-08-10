@@ -1,4 +1,5 @@
 import { querySnowflake, querySnowflakeLongRunning, currentActor } from "@/lib/snowflake"
+import { assertCan } from "@/lib/permissions-server"
 import { SCHEMA, SAR_INGEST_SCHEMA } from "@/lib/constants"
 
 /**
@@ -651,6 +652,7 @@ export async function setCaseClock(
   action: "stop" | "resume",
   reason?: string,
 ): Promise<{ ok: boolean }> {
+  await assertCan("CLOCK")
   const caseId = await caseIdFromRef(reference)
   if (!caseId) return { ok: false }
   if (action === "stop") {
@@ -685,6 +687,7 @@ export async function decideExemption(
   assessmentId: string,
   decision: "apply" | "disclose",
 ): Promise<{ ok: boolean }> {
+  await assertCan("DECIDE_EXEMPTION")
   const caseId = await caseIdFromRef(reference)
   if (!caseId) return { ok: false }
   const d = decision === "apply" ? "APPLY" : "DO_NOT_APPLY"
@@ -698,6 +701,7 @@ export async function decideExemption(
 
 /** Mark an FOI redaction human-verified. */
 export async function verifyFoiRedaction(reference: string, redactionId: string): Promise<{ ok: boolean }> {
+  await assertCan("VERIFY_REDACTION")
   const caseId = await caseIdFromRef(reference)
   if (!caseId) return { ok: false }
   await querySnowflake(`
@@ -818,6 +822,7 @@ export async function editDraftWithAI(currentText: string, instruction: string):
 
 /** Save an officer-edited draft as the final text. */
 export async function saveResponseFinal(reference: string, responseId: string, finalText: string): Promise<{ ok: boolean }> {
+  await assertCan("FINALISE_RESPONSE")
   const caseId = await caseIdFromRef(reference)
   if (!caseId) return { ok: false }
   await querySnowflake(`
@@ -850,6 +855,7 @@ export async function dispatchResponse(
   responseId: string,
   eventNote = "Response dispatched",
 ): Promise<{ ok: boolean }> {
+  await assertCan("DISPATCH")
   const caseId = await caseIdFromRef(reference)
   if (!caseId) return { ok: false }
   const typeRows = await querySnowflake(
@@ -1708,6 +1714,7 @@ export async function getBoardCases(f: CaseFilters = {}): Promise<BoardCase[]> {
  * (case not found, or already in that phase). Used by the board's write API.
  */
 export async function advanceCaseToPhase(reference: string, toPhase: string): Promise<{ stage: string; stageName: string } | null> {
+  await assertCan("ADVANCE_STAGE")
   const target = PHASE_FIRST_STAGE[toPhase]
   if (!target) return null
   const rows = await querySnowflake(`
@@ -1757,6 +1764,7 @@ export async function getLifecycleStages(): Promise<LifecycleStage[]> {
  * Returns the new stage code/name, or null if invalid / no change.
  */
 export async function setCaseStage(reference: string, toStage: string): Promise<{ stage: string; stageName: string } | null> {
+  await assertCan("ADVANCE_STAGE")
   const stageRows = await querySnowflake(`
     SELECT STAGE_NAME FROM ${SCHEMA}.LIFECYCLE_STAGE WHERE STAGE_CODE = '${esc(toStage)}' LIMIT 1
   `)
@@ -1926,6 +1934,7 @@ export async function getPrecedentMatch(reference: string): Promise<PrecedentMat
  * Returns the new {used, reviewedBy} state or null if no match exists.
  */
 export async function markPrecedent(reference: string, action: "use" | "review"): Promise<{ used: boolean; reviewedBy: string; advancedTo: string | null; canDraftFromPrecedent: boolean; hasExistingDraft: boolean; suggestedType: ResponseType } | null> {
+  await assertCan("MARK_PRECEDENT")
   const caseRows = await querySnowflake(`
     SELECT c.CASE_ID, c.CURRENT_STAGE, cs.STAGE_ORDER AS CUR_ORDER,
            ds.STAGE_ORDER AS DRAFT_ORDER, ds.STAGE_NAME AS DRAFT_NAME
@@ -4027,6 +4036,7 @@ export async function updateIcoComplaint(complaintId: string, status: string, ur
 }
 
 export async function publishCase(reference: string, topic: string): Promise<{ ok: boolean }> {
+  await assertCan("PUBLISH")
   const caseId = await caseIdFromRef(reference)
   if (!caseId) return { ok: false }
   await querySnowflake(`
@@ -4143,5 +4153,125 @@ export async function getTriageLearning(): Promise<TriageLearning> {
     })),
     threshold,
     modelCompare: modelCompare.map((r) => ({ model: String(r.MODEL ?? ""), accuracy: r.ACCURACY == null ? 0 : Number(r.ACCURACY), evalN: n(r.EVAL_N) })),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Collaboration: assignment / claim / release over the Hybrid Tables
+// (FOI_CASE_ASSIGNMENT etc.). The UNIQUE(CASE_ID) constraint is what makes a
+// concurrent double-claim fail cleanly rather than silently overwrite.
+// ---------------------------------------------------------------------------
+import { readActingOfficer, getOfficerById } from "@/lib/actor"
+
+export interface CaseAssignment {
+  officerId: string
+  officerName: string
+  persona: string
+  assignedAt: string
+}
+
+/** Parse a stored-proc VARIANT return (string or object) into a record. */
+function parseProc(rows: Record<string, any>[], key: string): Record<string, any> {
+  const raw = rows[0]?.[key]
+  return (typeof raw === "string" ? JSON.parse(raw) : raw) ?? {}
+}
+
+/** Current active assignment for a case, or null if unassigned. */
+export async function getCaseAssignment(reference: string): Promise<CaseAssignment | null> {
+  const rows = await querySnowflake(`
+    SELECT a.OFFICER_ID, a.OFFICER_NAME, a.PERSONA, a.ASSIGNED_AT
+    FROM ${SCHEMA}.FOI_CASE_ASSIGNMENT a
+    JOIN ${SCHEMA}.FOI_CASE c ON c.CASE_ID = a.CASE_ID
+    WHERE c.REFERENCE = '${esc(reference)}' LIMIT 1`)
+  if (!rows.length) return null
+  return {
+    officerId: String(rows[0].OFFICER_ID ?? ""),
+    officerName: String(rows[0].OFFICER_NAME ?? ""),
+    persona: String(rows[0].PERSONA ?? ""),
+    assignedAt: String(rows[0].ASSIGNED_AT ?? ""),
+  }
+}
+
+export interface ClaimResult {
+  ok: boolean
+  heldBy?: string
+  heldByPersona?: string
+  officerName?: string
+  error?: string
+}
+
+/** Claim a case as the acting officer. A second claim on the same case fails on
+ *  UNIQUE(CASE_ID) and returns who already holds it. */
+export async function claimCase(reference: string): Promise<ClaimResult> {
+  await assertCan("ASSIGN")
+  const actor = await readActingOfficer()
+  if (!actor?.id) return { ok: false, error: "Choose an officer (Acting as) before claiming." }
+  const rows = await querySnowflake(`
+    SELECT CASE_ID FROM ${SCHEMA}.FOI_CASE WHERE REFERENCE = '${esc(reference)}' LIMIT 1`)
+  const caseId = String(rows[0]?.CASE_ID ?? "")
+  if (!caseId) return { ok: false, error: "Case not found." }
+  const r = await querySnowflake(
+    `CALL ${SCHEMA}.SP_CLAIM_CASE('${esc(caseId)}', '${escLit(reference)}', '${esc(actor.id)}', '${escLit(actor.name)}', '${escLit(actor.persona)}', '${escLit(actor.name)}')`,
+  )
+  const v = parseProc(r, "SP_CLAIM_CASE")
+  if (v.ok) return { ok: true, officerName: String(v.officer_name ?? actor.name) }
+  return { ok: false, heldBy: String(v.held_by ?? ""), heldByPersona: String(v.held_by_persona ?? "") }
+}
+
+/** Reassign a case to any officer (manager action). */
+export async function assignCase(reference: string, officerId: string): Promise<ClaimResult> {
+  await assertCan("ASSIGN")
+  const officer = await getOfficerById(officerId)
+  if (!officer) return { ok: false, error: "Unknown officer." }
+  const rows = await querySnowflake(`
+    SELECT CASE_ID FROM ${SCHEMA}.FOI_CASE WHERE REFERENCE = '${esc(reference)}' LIMIT 1`)
+  const caseId = String(rows[0]?.CASE_ID ?? "")
+  if (!caseId) return { ok: false, error: "Case not found." }
+  const actor = await currentActor()
+  const r = await querySnowflake(
+    `CALL ${SCHEMA}.SP_ASSIGN_CASE('${esc(caseId)}', '${escLit(reference)}', '${esc(officer.id)}', '${escLit(officer.name)}', '${escLit(officer.persona)}', '${escLit(actor)}')`,
+  )
+  const v = parseProc(r, "SP_ASSIGN_CASE")
+  return { ok: Boolean(v.ok), officerName: String(v.officer_name ?? officer.name) }
+}
+
+/** Release the active assignment (case returns to unassigned). */
+export async function releaseCase(reference: string): Promise<{ ok: boolean }> {
+  await assertCan("ASSIGN")
+  const rows = await querySnowflake(`
+    SELECT CASE_ID FROM ${SCHEMA}.FOI_CASE WHERE REFERENCE = '${esc(reference)}' LIMIT 1`)
+  const caseId = String(rows[0]?.CASE_ID ?? "")
+  if (!caseId) return { ok: false }
+  await querySnowflake(`CALL ${SCHEMA}.SP_RELEASE_CASE('${esc(caseId)}')`)
+  return { ok: true }
+}
+
+export interface MyCase {
+  reference: string
+  subject: string
+  stage: string
+  status: string
+  deadline: string
+}
+
+/** Cases assigned to the acting officer. Empty when no officer is selected. */
+export async function getMyCases(): Promise<{ officerName: string | null; cases: MyCase[] }> {
+  const actor = await readActingOfficer()
+  if (!actor?.id) return { officerName: null, cases: [] }
+  const rows = await querySnowflake(`
+    SELECT c.REFERENCE, c.REQUEST_TEXT, c.CURRENT_STAGE, c.STATUS, c.STATUTORY_DEADLINE
+    FROM ${SCHEMA}.FOI_CASE c
+    JOIN ${SCHEMA}.FOI_CASE_ASSIGNMENT a ON a.CASE_ID = c.CASE_ID
+    WHERE a.OFFICER_ID = '${esc(actor.id)}'
+    ORDER BY c.STATUTORY_DEADLINE NULLS LAST`)
+  return {
+    officerName: actor.name,
+    cases: rows.map((r) => ({
+      reference: String(r.REFERENCE ?? ""),
+      subject: String(r.REQUEST_TEXT ?? "").slice(0, 80),
+      stage: String(r.CURRENT_STAGE ?? ""),
+      status: String(r.STATUS ?? ""),
+      deadline: String(r.STATUTORY_DEADLINE ?? ""),
+    })),
   }
 }

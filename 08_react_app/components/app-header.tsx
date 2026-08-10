@@ -2,6 +2,7 @@ import Image from "next/image"
 import { APP_TITLE, LOGO_SRC } from "@/lib/constants"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { MainNav } from "@/components/main-nav"
+import { ActingAsSwitcher } from "@/components/acting-as-switcher"
 
 /**
  * AppHeader — top navigation bar.
@@ -26,7 +27,8 @@ export function AppHeader() {
         <div className="ml-4 hidden sm:block">
           <MainNav />
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <ActingAsSwitcher />
           <ThemeToggle />
         </div>
       </div>

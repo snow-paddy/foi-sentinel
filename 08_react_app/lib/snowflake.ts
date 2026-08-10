@@ -37,7 +37,7 @@
  *   closePool() — drains and destroys all active pools on shutdown.
  */
 
-import { headers } from "next/headers"
+import { headers, cookies } from "next/headers"
 import fs from "fs"
 import path from "path"
 import os from "os"
@@ -67,6 +67,20 @@ const FALLBACK_ACTOR = "FOI Officer"
  */
 export async function currentActor(): Promise<string> {
   const fallback = process.env.FOI_FALLBACK_ACTOR?.trim() || FALLBACK_ACTOR
+  // Prefer the simulated "acting as" selection (demo user-switcher): the cookie
+  // carries {id,name,persona} so this stays a cheap read with no DB hit, even
+  // though it runs on every write path. Real SSO (the ingress header) is next,
+  // then the local-dev fallback — so the order preserves genuine-auth behaviour
+  // if it ever lands.
+  try {
+    const raw = (await cookies()).get("foi_acting_as")?.value
+    if (raw) {
+      const name = String(JSON.parse(raw)?.name ?? "").trim()
+      if (name) return name.slice(0, 120)
+    }
+  } catch {
+    // no cookie / not in a request scope — fall through
+  }
   try {
     const name = ((await headers()).get("sf-context-current-user") ?? "").trim()
     // Cap the length: this value is written to audit columns.
