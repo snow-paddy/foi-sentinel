@@ -1,5 +1,6 @@
 /** Internal-review / ICO / disclosure actions. */
 import { recordReviewOutcome, updateIcoComplaint, publishCase } from "@/lib/queries"
+import { errorResponse } from "@/lib/http"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 120
@@ -30,11 +31,10 @@ export async function POST(req: Request) {
       const topic = typeof body.topic === "string" ? body.topic.slice(0, 200) : ""
       if (!reference || !topic.trim()) return Response.json({ ok: false, error: "Invalid input" }, { status: 400 })
       const r = await publishCase(reference, topic)
-      return Response.json(r.ok ? { ok: true } : { ok: false, error: "Case not found" }, { status: r.ok ? 200 : 404 })
+      return Response.json(r.ok ? { ok: true } : { ok: false, error: r.error ?? "Case not found" }, { status: r.ok ? 200 : 409 })
     }
     return Response.json({ ok: false, error: "Unknown action" }, { status: 400 })
   } catch (e) {
-    console.error("review error:", e)
-    return Response.json({ ok: false, error: "Action failed" }, { status: 500 })
+    return errorResponse(e, "Action")
   }
 }

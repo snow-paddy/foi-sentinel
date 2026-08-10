@@ -1,5 +1,6 @@
 /** Record a human PIT decision on a qualified exemption. */
 import { decideExemption } from "@/lib/queries"
+import { errorResponse } from "@/lib/http"
 
 export const dynamic = "force-dynamic"
 
@@ -20,7 +21,6 @@ export async function POST(req: Request) {
     if (!result.ok) return Response.json({ ok: false, error: "Case not found" }, { status: 404 })
     return Response.json({ ok: true })
   } catch (e) {
-    console.error("exemption error:", e)
-    return Response.json({ ok: false, error: "Decision failed" }, { status: 500 })
+    return errorResponse(e, "Decision")
   }
 }

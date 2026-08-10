@@ -109,6 +109,17 @@ export default async function ConnectionsPage() {
         </div>
       </Card>
 
+      <Card className="mt-4 p-5">
+        <h2 className="text-base font-semibold">How roles are enforced</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          The service connects to Snowflake under a single owner&rsquo;s-rights identity, so who you act as is
+          enforced in the application layer — each write is checked against the acting officer&rsquo;s role before the
+          query runs, and denials return a 403. It is deliberately not database-level isolation: a production
+          deployment would additionally map each officer to their own Snowflake role and secure the objects with
+          row-access and masking policies.
+        </p>
+      </Card>
+
       <div className="mt-4 grid grid-cols-1 gap-4">
         {CONNECTIONS.map((c) => (
           <ConnectionCard key={c.id} c={c} />

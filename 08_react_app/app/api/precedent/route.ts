@@ -8,6 +8,7 @@
  */
 
 import { markPrecedent } from "@/lib/queries"
+import { errorResponse } from "@/lib/http"
 
 export const dynamic = "force-dynamic"
 
@@ -30,7 +31,6 @@ export async function POST(req: Request) {
     }
     return Response.json({ ok: true, used: result.used, reviewedBy: result.reviewedBy, advancedTo: result.advancedTo, canDraftFromPrecedent: result.canDraftFromPrecedent, hasExistingDraft: result.hasExistingDraft })
   } catch (e) {
-    console.error("precedent error:", e)
-    return Response.json({ ok: false, error: "Precedent action failed" }, { status: 500 })
+    return errorResponse(e, "Precedent action")
   }
 }

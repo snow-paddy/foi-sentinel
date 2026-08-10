@@ -854,10 +854,12 @@ export async function dispatchResponse(
   reference: string,
   responseId: string,
   eventNote = "Response dispatched",
-): Promise<{ ok: boolean }> {
+): Promise<{ ok: boolean; error?: string }> {
   await assertCan("DISPATCH")
   const caseId = await caseIdFromRef(reference)
   if (!caseId) return { ok: false }
+  if (!(await hasMonitoringApproval(caseId)))
+    return { ok: false, error: "Awaiting monitoring sign-off before dispatch." }
   const typeRows = await querySnowflake(
     `SELECT RESPONSE_TYPE FROM ${SCHEMA}.FOI_RESPONSE WHERE RESPONSE_ID = '${esc(responseId)}' AND CASE_ID = '${esc(caseId)}' LIMIT 1`,
   )
@@ -4035,10 +4037,12 @@ export async function updateIcoComplaint(complaintId: string, status: string, ur
   return { ok: true }
 }
 
-export async function publishCase(reference: string, topic: string): Promise<{ ok: boolean }> {
+export async function publishCase(reference: string, topic: string): Promise<{ ok: boolean; error?: string }> {
   await assertCan("PUBLISH")
   const caseId = await caseIdFromRef(reference)
   if (!caseId) return { ok: false }
+  if (!(await hasMonitoringApproval(caseId)))
+    return { ok: false, error: "Awaiting monitoring sign-off before publication." }
   await querySnowflake(`
     INSERT INTO ${SCHEMA}.FOI_DISCLOSURE_PUBLICATION (CASE_ID, REFERENCE_NUMBER, PUBLICATION_DATE, TOPIC, SUMMARY, PUBLISHED_BY)
     SELECT CASE_ID, REFERENCE, CURRENT_DATE(), '${escLit(topic)}', LEFT(REQUEST_TEXT, 200), '${escLit(await currentActor())}'
@@ -4274,4 +4278,67 @@ export async function getMyCases(): Promise<{ officerName: string | null; cases:
       deadline: String(r.STATUTORY_DEADLINE ?? ""),
     })),
   }
+}
+
+// ---------------------------------------------------------------------------
+// Sign-off chain (FOI_SIGNOFF, append-only): officer draft -> reviewer ->
+// monitoring. Dispatch and publish require a MONITORING 'APPROVED' row, so the
+// gate is tied to the workflow, not only to who is acting.
+// ---------------------------------------------------------------------------
+export type SignoffStep = "OFFICER_DRAFT" | "REVIEWER" | "MONITORING"
+
+export interface SignoffRow {
+  step: string
+  actor: string
+  role: string
+  decision: string
+  note: string
+  at: string
+}
+
+/** True when a monitoring officer has approved this case. */
+export async function hasMonitoringApproval(caseId: string): Promise<boolean> {
+  const rows = await querySnowflake(`
+    SELECT COUNT(*) AS N FROM ${SCHEMA}.FOI_SIGNOFF
+    WHERE CASE_ID = '${esc(caseId)}' AND STEP = 'MONITORING' AND DECISION = 'APPROVED'`)
+  return n(rows[0]?.N) > 0
+}
+
+/** The sign-off chain for a case, oldest first. */
+export async function getSignoffs(reference: string): Promise<SignoffRow[]> {
+  const rows = await querySnowflake(`
+    SELECT s.STEP, s.ACTOR, s.ROLE, s.DECISION, s.NOTE, s.AT
+    FROM ${SCHEMA}.FOI_SIGNOFF s
+    JOIN ${SCHEMA}.FOI_CASE c ON c.CASE_ID = s.CASE_ID
+    WHERE c.REFERENCE = '${esc(reference)}'
+    ORDER BY s.AT`)
+  return rows.map((r) => ({
+    step: String(r.STEP ?? ""),
+    actor: String(r.ACTOR ?? ""),
+    role: String(r.ROLE ?? ""),
+    decision: String(r.DECISION ?? ""),
+    note: String(r.NOTE ?? ""),
+    at: String(r.AT ?? ""),
+  }))
+}
+
+/** Append one sign-off step as the acting officer (Reviewer or Manager only). */
+export async function submitSignoff(
+  reference: string,
+  step: SignoffStep,
+  decision: "APPROVED" | "REJECTED",
+  note = "",
+): Promise<{ ok: boolean; error?: string }> {
+  await assertCan("SIGN_OFF")
+  const actor = await readActingOfficer()
+  const rows = await querySnowflake(`
+    SELECT CASE_ID FROM ${SCHEMA}.FOI_CASE WHERE REFERENCE = '${esc(reference)}' LIMIT 1`)
+  const caseId = String(rows[0]?.CASE_ID ?? "")
+  if (!caseId) return { ok: false, error: "Case not found." }
+  const actorName = actor?.name ?? (await currentActor())
+  const role = actor?.persona ?? ""
+  const r = await querySnowflake(
+    `CALL ${SCHEMA}.SP_SUBMIT_SIGNOFF('${esc(caseId)}', '${escLit(reference)}', '${esc(step)}', '${escLit(actorName)}', '${escLit(role)}', '${esc(decision)}', '${escLit(note)}')`,
+  )
+  return { ok: Boolean(parseProc(r, "SP_SUBMIT_SIGNOFF").ok) }
 }

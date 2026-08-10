@@ -10,6 +10,7 @@
  */
 
 import { advanceCaseToPhase, setCaseStage, PHASE_FIRST_STAGE } from "@/lib/queries"
+import { errorResponse } from "@/lib/http"
 
 export const dynamic = "force-dynamic"
 
@@ -46,7 +47,6 @@ export async function POST(req: Request) {
     }
     return Response.json({ ok: true, newStage: moved.stage, newStageName: moved.stageName })
   } catch (e) {
-    console.error("advance-stage error:", e)
-    return Response.json({ ok: false, error: "Stage advance failed" }, { status: 500 })
+    return errorResponse(e, "Stage advance")
   }
 }

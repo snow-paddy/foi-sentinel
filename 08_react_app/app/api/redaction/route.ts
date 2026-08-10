@@ -1,5 +1,6 @@
 /** Mark an FOI redaction human-verified. */
 import { verifyFoiRedaction } from "@/lib/queries"
+import { errorResponse } from "@/lib/http"
 
 export const dynamic = "force-dynamic"
 
@@ -18,7 +19,6 @@ export async function POST(req: Request) {
     if (!result.ok) return Response.json({ ok: false, error: "Case not found" }, { status: 404 })
     return Response.json({ ok: true })
   } catch (e) {
-    console.error("redaction error:", e)
-    return Response.json({ ok: false, error: "Verify failed" }, { status: 500 })
+    return errorResponse(e, "Verify")
   }
 }

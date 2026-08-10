@@ -1,5 +1,6 @@
 /** Dispatch a response: timestamp, close the case, log the event. */
 import { dispatchResponse } from "@/lib/queries"
+import { errorResponse } from "@/lib/http"
 
 export const dynamic = "force-dynamic"
 
@@ -15,10 +16,10 @@ export async function POST(req: Request) {
       return Response.json({ ok: false, error: "Invalid response" }, { status: 400 })
     }
     const result = await dispatchResponse(reference, responseId)
-    if (!result.ok) return Response.json({ ok: false, error: "Case not found" }, { status: 404 })
+    if (!result.ok)
+      return Response.json({ ok: false, error: result.error ?? "Case not found" }, { status: 409 })
     return Response.json({ ok: true })
   } catch (e) {
-    console.error("response/dispatch error:", e)
-    return Response.json({ ok: false, error: "Dispatch failed" }, { status: 500 })
+    return errorResponse(e, "Dispatch")
   }
 }

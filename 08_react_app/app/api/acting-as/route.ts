@@ -6,6 +6,7 @@
  */
 import { cookies } from "next/headers"
 import { listActiveOfficers, getOfficerById, readActingOfficer, ACTING_AS_COOKIE } from "@/lib/actor"
+import { allowedActions } from "@/lib/permissions"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -13,7 +14,7 @@ export const maxDuration = 60
 export async function GET() {
   try {
     const [officers, current] = await Promise.all([listActiveOfficers(), readActingOfficer()])
-    return Response.json({ ok: true, officers, current })
+    return Response.json({ ok: true, officers, current, allowed: allowedActions(current?.persona ?? null) })
   } catch (e) {
     console.error("acting-as GET error:", e)
     return Response.json({ ok: false, error: "Could not list officers" }, { status: 500 })

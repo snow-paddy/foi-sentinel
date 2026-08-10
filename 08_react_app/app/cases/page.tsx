@@ -18,6 +18,7 @@ import { PrecedentPill } from "@/components/shared/precedent-match"
 import { PriorityChip } from "@/components/shared/priority-chip"
 import { ReviewWorkspace } from "@/components/review/review-workspace"
 import { EscalationForm } from "@/components/escalations/escalation-form"
+import { MyCasesStrip } from "@/components/cases/my-cases-strip"
 
 export const dynamic = "force-dynamic"
 
@@ -343,6 +344,8 @@ async function CasesPageInner({ searchParams }: { searchParams: Promise<SP> }) {
         <h1 className="text-2xl font-bold tracking-tight">Cases</h1>
         <ViewToggle />
       </div>
+
+      <MyCasesStrip />
 
       {filters.keyword && (
         <div className="mb-3 inline-flex items-center gap-2 rounded-lg border border-[var(--brand-primary)] bg-[var(--brand-primary)]/5 px-3 py-2 text-sm">

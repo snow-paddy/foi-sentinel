@@ -1,5 +1,6 @@
 /** Stop or resume the statutory clock on a case. */
 import { setCaseClock } from "@/lib/queries"
+import { errorResponse } from "@/lib/http"
 
 export const dynamic = "force-dynamic"
 
@@ -17,7 +18,6 @@ export async function POST(req: Request) {
     if (!result.ok) return Response.json({ ok: false, error: "Case not found" }, { status: 404 })
     return Response.json({ ok: true })
   } catch (e) {
-    console.error("clock error:", e)
-    return Response.json({ ok: false, error: "Clock action failed" }, { status: 500 })
+    return errorResponse(e, "Clock action")
   }
 }

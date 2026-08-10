@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { AssignmentControl } from "@/components/case/assignment-control"
+import { SignoffPanel } from "@/components/case/signoff-panel"
 import {
   ArrowLeft, Scale, Clock, Briefcase, Building2, FileText, History,
   Flag, PoundSterling, AlertTriangle, CheckCircle2, PauseCircle, Info,
@@ -186,6 +187,11 @@ async function CaseView({ params }: { params: Params }) {
       {/* Assignment (claim / reassign / release) */}
       <div className="mt-3">
         <AssignmentControl reference={detail.reference} />
+      </div>
+
+      {/* Sign-off chain (reviewer / monitoring) */}
+      <div className="mt-3">
+        <SignoffPanel reference={detail.reference} />
       </div>
 
       {/* Header */}
