@@ -45,6 +45,10 @@ CREATE HYBRID TABLE IF NOT EXISTS FOI_CASE_ASSIGNMENT (
 -- ---------------------------------------------------------------------
 -- Soft edit-lock, one per case. EXPIRES_AT lets a stale lock self-clear so a
 -- crashed session can't wedge a case permanently.
+-- DEFERRED (WI-24): table exists but is intentionally unwired. Assignment
+-- (UNIQUE CASE_ID) plus the sign-off chain already prevent conflicting writes
+-- for the demo; a soft edit-lock is only worth adding under real concurrent
+-- editing. Left in place so the wiring is a small, additive follow-up.
 -- ---------------------------------------------------------------------
 CREATE HYBRID TABLE IF NOT EXISTS FOI_CASE_LOCK (
   CASE_ID        VARCHAR       NOT NULL,
