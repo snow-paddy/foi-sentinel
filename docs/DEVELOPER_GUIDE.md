@@ -42,8 +42,8 @@ The application queries Snowflake as its own service identity (owner's rights) u
 
 - A non-trial Snowflake account in a region with native Cortex (Cortex Search, Cortex Analyst and the AI SQL functions), and access to the **ACCOUNTADMIN** role for the initial setup.
 - The [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/index) (`snow`) installed and a connection configured in `~/.snowflake/config.toml`.
-- [Node.js](https://nodejs.org/) 18 or later and npm.
-- The ability to create a database and warehouse. Step 1 creates `FOI` and `FOI_WH` for you via `snowflake/00_bootstrap.sql`.
+- [Node.js](https://nodejs.org/) 20 LTS or later and npm (Next.js 16 requires a current LTS).
+- The ability to create a database and warehouse. Step 1 creates `FOI` and `FOI_WH` for you via `00_bootstrap.sql` at the repository root.
 - Generative Cortex features and any fine-tuned models require **cross-region inference** in regions that do not host them natively (for example, London provides extract and embed only). If a Cortex call reports a model is unavailable in your region, enable it with `ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = '<value>'` (a commented line is included in `00_bootstrap.sql`).
 
 Optional, for the live Outlook and SharePoint integrations:
@@ -54,27 +54,31 @@ Optional, for the live Outlook and SharePoint integrations:
 
 ## Repository layout
 
+The SQL back end lives at the repository root in numbered directories, run in order. The application is in `08_react_app/`.
+
 ```
 foi-sentinel/
-  README.md                     this developer guide
-  app/                          the Next.js application (deployed to SPCS)
-    app/                        routes and pages
-    components/                 UI components
-    lib/                        Snowflake access + queries
-    semantic_models/           Cortex Analyst semantic model(s)
-    snowflake.yml               app deploy definition
-    app.yml                     SPCS App Runtime spec
-  snowflake/                    the Snowflake back end (run in order)
-    00_bootstrap.sql            create the FOI database, schemas and FOI_WH warehouse
-    01_ddl/                     schema, case model, SAR, legislation search
-    02_seed_data/               knowledge bases, seed cases, WDTK corpus
-    03_cortex/                  Cortex Search services
-    04_procedures/              working-day, clock, cost, triage, response, scrapers
-    sar_sharepoint_seed/        sample SAR documents for the redaction demo
-    reset_demo.sql              return demo state to baseline between runs
+  README.md                          repository overview
+  docs/DEVELOPER_GUIDE.md            this guide (plus SOW, roadmap, data sources, architecture)
+  00_bootstrap.sql                   create the FOI database, schemas and FOI_WH warehouse
+  01_ddl/                            schema, case model, SAR, officers, cost, collaboration
+  02_seed_data/                      knowledge bases, seed cases, WDTK corpus
+  03_cortex/                         Cortex Search services
+  04_procedures/                     working-day, clock, cost, triage, response, scrapers
+  sar_sharepoint_seed/               sample SAR documents for the redaction demo
   notebooks/
-    foi_engine_room.ipynb       back-end walkthrough of the full Cortex pipeline
-    foi_demand_simulation_vqr.ipynb  Cortex Analyst stability stress-test tool
+    foi_engine_room.ipynb            back-end walkthrough of the full Cortex pipeline
+    foi_demand_simulation_vqr.ipynb  Cortex Analyst tool; defines the FOI_CASE_ANALYTICS semantic view
+  08_react_app/                      the Next.js application (deployed to SPCS App Runtime)
+    app/                             routes, pages and API routes
+    components/                      UI components
+    lib/                             Snowflake access + queries (constants.ts holds the DB/schema names)
+    semantic_models/                 Cortex Analyst semantic model definition
+    snowflake.yml                    app deploy definition
+    app.yml                          SPCS App Runtime spec
+    demo_video/RESET_DEMO.sql        return demo state to baseline between runs
+  06_native_app/                     experimental Native App packaging (not required to run the app)
+  07_inventory/                      object inventory + compliance matrix
 ```
 
 ---
@@ -85,7 +89,7 @@ Run the SQL scripts in a Snowsight worksheet (or with `snow sql -f`) in the orde
 
 **0. Bootstrap (`snowflake/00_bootstrap.sql`)** — creates the `FOI` database, its schemas (`FOI_SENTINEL_V2` for the data model, `APPS` for the app) and the `FOI_WH` warehouse. Run this first: every later script uses them.
 
-**1. Data model and features (`snowflake/01_ddl/`)** — run `01` through `11` in filename order:
+**1. Data model and features (`01_ddl/`)** — run `01` through `13` in filename order:
 
 ```
 01_schema_and_case_model.sql     case model, config, bank holidays (schema from step 0)
@@ -95,12 +99,16 @@ Run the SQL scripts in a Snowsight worksheet (or with `snow sql -f`) in the orde
 05_complaint_route_model.sql     complaint / appeal routing
 06_precedent_match.sql           cross-authority precedent matching
 07_sar_redaction.sql             SAR redaction tables + disclosure view
-08_officers.sql                  officer records
+08_officers.sql                  officer records (the role roster used by the app)
 08_sar_redaction_decision.sql    per-value officer redaction decisions
 09_legislation_search.sql        legislation reference model
 10_s21_duplicate_check.sql       section 21 "already answered" detection
 11_corpus_summary.sql            corpus summary helpers
+12_schema_reconciliation.sql     AI-usage, cost and fine-tune tables (Reporting + cost views)
+13_collaboration.sql             assignment, sign-off and release procedures (the roles feature)
 ```
+
+Run all of `01` through `13`. Scripts `12` and `13` are required: `12` backs the Reporting page and AI cost views, and `13` provides the case-assignment and sign-off procedures the app calls for the role-based workflow. Skipping them leaves those features non-functional.
 
 `03_external_access.sql` (and the matching `03_web_scrapers.sql` in step 4) are only needed for the live GLA/ICO scrapers. The FOI, EIR and SAR walkthrough runs fully on the seeded data without them, so you can skip both on a first pass.
 
@@ -127,7 +135,9 @@ Run the SQL scripts in a Snowsight worksheet (or with `snow sql -f`) in the orde
 03_web_scrapers.sql              OPTIONAL: server-side GLA/ICO scrapers (needs 03_external_access)
 ```
 
-**5. SAR sample documents.** Upload the files in `snowflake/sar_sharepoint_seed/` to the stage used by the SAR redaction flow (in production these arrive from SharePoint via Openflow). Use Snowsight stage upload or `snow stage copy`.
+**5. SAR sample documents.** Upload the files in `sar_sharepoint_seed/` to the stage used by the SAR redaction flow (in production these arrive from SharePoint via Openflow). Use Snowsight stage upload or `snow stage copy`.
+
+**6. Cortex Analyst semantic view (optional).** The `FOI_CASE_ANALYTICS` semantic view used by the reporting analytics and the companion agent is defined in `notebooks/foi_demand_simulation_vqr.ipynb` and `08_react_app/semantic_models/`, not in the numbered DDL. Create it from either source if you want the Cortex Analyst features; the core FOI and SAR walkthrough does not require it.
 
 ### Optional: the Outlook intake and SharePoint mirror
 
@@ -148,11 +158,15 @@ Open `notebooks/foi_engine_room.ipynb` in a Snowflake Workspace or Snowsight not
 The app deploys as a Snowflake App on SPCS App Runtime.
 
 ```bash
-cd app
+cd 08_react_app
 npm install                 # first time only, for local checks
 ```
 
-Review `app/snowflake.yml` and set the database, schema and app name for your account (the defaults install the app object into `FOI.APPS` and query `FOI.FOI_SENTINEL_V2` through `FOI_WH`). Then deploy:
+Review `08_react_app/snowflake.yml` and set the database, schema and app name for your account (the defaults install the app object into `FOI.APPS` and query `FOI.FOI_SENTINEL_V2` through `FOI_WH`).
+
+> Important: the database and schema names are also hardcoded in the application code, not read from `snowflake.yml`. `08_react_app/lib/constants.ts` sets `SCHEMA = "FOI.FOI_SENTINEL_V2"` and `SAR_INGEST_SCHEMA = "FOI.SAR_INGEST"`, and `08_react_app/lib/queries.ts` refers to the `SAR_INGEST` schema by name. If you install under different database or schema names, update these values in code as well as in `snowflake.yml`. Changing `snowflake.yml` alone is not sufficient.
+
+Then deploy:
 
 ```bash
 snow app deploy --connection <your-connection>
@@ -181,7 +195,7 @@ The application opens on the Command Centre. A suggested walkthrough:
 The demo walkthrough mutates case state (advancing stages, closing quick wins). To return to the baseline:
 
 ```bash
-snow sql -f snowflake/reset_demo.sql --connection <your-connection>
+snow sql -f 08_react_app/demo_video/RESET_DEMO.sql --connection <your-connection>
 ```
 
 ---
@@ -207,13 +221,13 @@ DROP DATABASE IF EXISTS FOI;
 DROP WAREHOUSE IF EXISTS FOI_WH;
 ```
 
-SPCS bills credits per second for compute-pool uptime, so drop or suspend the compute pool when you are not using the application.
+SPCS App Runtime bills for the compute the application service uses, so suspend or drop the application when you are not using it.
 
 ---
 
 ## Notes
 
-- The application queries Snowflake with owner's rights via the SPCS service token. Access to features is governed at the ingress endpoint, so control who can reach the service.
-- This repository is a working reference build. The intent is to hand it to an implementation partner to package as a Snowflake **Native App**, so keep it portable: no tenant-specific values (mailbox, Microsoft Graph secret, account identifiers) belong in the code, and the app should read every such value from consumer-supplied configuration.
-- This repository contains no credentials. The Microsoft Graph client secret, the demo mailbox and any tenant identifiers must be supplied in your own account.
+- The application queries Snowflake with owner's rights via the SPCS service token. Role-based permissions (assignment, sign-off, and the action checks) are enforced in the application, not at the database level, and the acting-officer selection is a demonstration switcher rather than a security boundary. Effective access is therefore governed by who can reach the ingress endpoint, so control that first.
+- The database, schema and warehouse names are currently hardcoded in the application (`08_react_app/lib/constants.ts` and `lib/queries.ts`), not read from configuration. Installing under different names requires the code edits described in Step 3.
+- This repository is a working reference build intended to be redeployed in your own Snowflake account. Tenant-specific values (the demo mailbox, the Microsoft Graph client secret and account identifiers) must be supplied in your account, as described in the optional integration steps.
 - FOI Sentinel is a demonstration build. Validate all legal wording and exemption handling against your authority's own policies before any production use.
