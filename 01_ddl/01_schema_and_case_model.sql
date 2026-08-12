@@ -1,7 +1,6 @@
 -- =====================================================================
 -- FOI Sentinel v2 — Phase 1: Schema, case model, config, bank holidays
--- Council-agnostic FOI case-management core. Built in FOI.FOI_SENTINEL_V2
--- for development; later wrapped into a Native App (06_native_app).
+-- Council-agnostic FOI case-management core. Built in FOI.FOI_SENTINEL_V2.
 -- UK English throughout. Legal refs: FOIA 2000, EIR 2004, DPA 2018,
 -- Fees Regs 2004 (SI 2004/3244), s.45 Code of Practice.
 -- =====================================================================

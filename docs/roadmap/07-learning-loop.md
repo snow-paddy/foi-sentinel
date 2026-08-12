@@ -21,7 +21,7 @@ not exist at all**. Fix the destruction before building anything new.
 | `FOI_PRECEDENT_MATCH.USED` / `REVIEWED_BY` | `markPrecedent`, `lib/queries.ts:1894` | **Live** — explicit "I used this precedent" |
 | `SAR_REDACTION_DECISION` | `01_ddl/08` | **A genuinely working closed loop** — copy this pattern |
 | `FOI_SUGGESTED_ANSWER.GROUNDEDNESS` / `COVERAGE` / `EVAL_VERDICT` | `lib/queries.ts:1375` | Live LLM-as-judge scores |
-| Fine-tune `mistral-7b` → `TRIAGE_TUNED` | `05_app/app_pages/testing_learning.py` | Real; 62.5% → 100% on n=16 |
+| Fine-tune `mistral-7b` → `TRIAGE_TUNED` | v1 Streamlit build (superseded; not yet ported) | Real; 62.5% → 100% on n=16 |
 
 `SAR_REDACTION_DECISION` is exactly the right shape and its own DDL comment describes the loop:
 *record the human decision, pre-apply it next run, `IF NOT EXISTS` so learned decisions survive

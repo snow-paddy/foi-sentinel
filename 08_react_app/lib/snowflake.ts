@@ -283,7 +283,7 @@ function normalizeConnectionsToml(doc: Record<string, any>): Record<string, Toml
  *
  * Both files may contain a `default_connection_name` key. The env var
  * SNOWFLAKE_CONNECTION_NAME takes priority, then SNOWFLAKE_DEFAULT_CONNECTION_NAME
- * (set by Cortex Code for SnowCLI compatibility), then the file-level default.
+ * (set by the Snowflake CLI tooling), then the file-level default.
  *
  * Result is cached for the lifetime of the process.
  */

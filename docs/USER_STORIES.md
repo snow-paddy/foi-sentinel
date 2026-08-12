@@ -2,7 +2,7 @@
 
 Given/When/Then stories per persona × key use case. Each names the **UI signal** Playwright asserts (Phase 4). Stories tagged **[KEY]** are gate-blocking; **[ADV]** are advisory.
 
-Personas: [PERSONAS.md](PERSONAS.md). Harness: `SNOWFLAKE_CONNECTION_NAME=PG-SNOWFLAKE streamlit run 05_app/local_main.py` → http://localhost:8501.
+Personas: [PERSONAS.md](PERSONAS.md). Harness: `SNOWFLAKE_CONNECTION_NAME=<your-connection> npm run dev` (in `08_react_app`) → http://localhost:3000.
 
 ---
 

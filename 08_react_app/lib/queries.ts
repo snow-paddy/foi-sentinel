@@ -716,7 +716,7 @@ export async function verifyFoiRedaction(reference: string, redactionId: string)
 // Response & Refusal Studio — generate a s.17(7)-compliant disclosure/refusal
 // letter with Cortex (SP_GENERATE_RESPONSE), review/edit it, save as final, and
 // dispatch (which closes the case). Powers /studio and the case-detail Responses
-// card. Ported from 05_app/app_pages/response_studio.py.
+// card. Ported from the original Streamlit response studio.
 // ---------------------------------------------------------------------------
 
 export type ResponseType = "DISCLOSURE" | "PARTIAL" | "REFUSAL" | "S21_REUSE" | "MIXED_S21"
@@ -1634,7 +1634,7 @@ export async function searchPublished(query: string): Promise<PublishedAnswer> {
 // ---------------------------------------------------------------------------
 // Kanban board — the 17 lifecycle stages grouped into the 5-step FOIA process
 // (+ a Challenge column for s.50 review). The precise stage shows on each card.
-// Ported from the original board (05_app/app_pages/cases.py).
+// Ported from the original Streamlit case board.
 // ---------------------------------------------------------------------------
 
 // PHASES / STAGE_TO_PHASE / PHASE_FIRST_STAGE live in the pure, client-safe

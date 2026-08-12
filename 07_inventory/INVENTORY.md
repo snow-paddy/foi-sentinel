@@ -26,10 +26,9 @@
 02_seed_data/02_seed_cases.sql        (base case rows)
 02_seed_data/03_calendar_deadlines_view.sql   (calendar, deadlines, V_CASE)
    + artefacts / triage / events  (run in-session; see git history / setup notes)
-06_spcs/infra.sql + deploy.sh        (SPCS deployment)
+08_react_app/  snow app deploy         (SPCS App Runtime)
 ```
 
 ## Deployment status
 - Schema, logic, data, Cortex services: **built & validated**.
-- SPCS: compute pool `FOI_SENTINEL_POOL`, image repo `FOI.FOI_SENTINEL_V2.IMAGES`, roles `FOI_SENTINEL_SVC` / `FOI_REVIEWER`, Cortex grants: **created**.
-- Container image build/push: **pending** (Docker Desktop org sign-in required on the build machine).
+- Application: deployed to **SPCS App Runtime** as `FOI.APPS.FOI_SENTINEL_APP` via `snow app deploy` (Snowflake builds the image; no manual compute pool or image repository).

@@ -92,8 +92,7 @@ needs to be always-on.
   **~18.9 credits in 60 days**.
 - The FOI app's own warehouse alone (**50.9**) is ~**2.7×** all AI on the account, and ~**1.5×** all
   FOI hosting.
-- Cortex Code / CoCo Desktop (**4,403**) — the AI coding assistant used to *build* this — is
-  ~**230×** the app's AI inference.
+- Developer tooling (IDE and CLI) compute (**4,403**) is ~**230×** the app's AI inference.
 - **FOI end-to-end** ≈ warehouse 50.9 + hosting ~35 + search ~1.3 + tokens ≈ **under 90 credits per
   60 days** for everything.
 

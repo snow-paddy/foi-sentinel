@@ -1,5 +1,9 @@
 # FOI Sentinel v2 — React migration inventory
 
+> Historical: this migration is complete. The application now lives in `08_react_app/`
+> (Next.js on SPCS App Runtime). This document is retained as a record of the port from
+> the original Streamlit build and is not a guide to the current application.
+
 Living source of truth for porting the Streamlit app (`05_app/app_pages/*.py`) to
 React/Next.js on SPCS (`08_react_app/`). Update this as pages land.
 

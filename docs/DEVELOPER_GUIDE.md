@@ -77,7 +77,6 @@ foi-sentinel/
     snowflake.yml                    app deploy definition
     app.yml                          SPCS App Runtime spec
     demo_video/RESET_DEMO.sql        return demo state to baseline between runs
-  06_native_app/                     experimental Native App packaging (not required to run the app)
   07_inventory/                      object inventory + compliance matrix
 ```
 

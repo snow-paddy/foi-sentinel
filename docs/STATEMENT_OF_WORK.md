@@ -106,7 +106,7 @@ A 17-stage lifecycle — from receipt, validity and classification through alloc
 
 ### 3.3 Delivery
 
-The platform is delivered as a Streamlit application on **Snowpark Container Services**, deployed entirely within the authority's Snowflake account. There is no separate data estate to secure: case data, the precedent corpus, the AI models and the application all sit inside one governed boundary.
+The platform is delivered as a Next.js application on **Snowpark Container Services (SPCS App Runtime)**, deployed entirely within the authority's Snowflake account. There is no separate data estate to secure: case data, the precedent corpus, the AI models and the application all sit inside one governed boundary.
 
 ---
 
@@ -129,7 +129,7 @@ The strategic outcome: **skilled officers spend their time on the legal judgemen
 
 - **Data model** — a case spine (`FOI_CASE`, `FOI_CASE_EVENT`) with artefact tables for cost, exemptions, redaction, response, internal review, ICO complaint and publication; a 17-stage lifecycle; and a working-day calendar including UK bank holidays. Council-agnostic configuration is held in a dedicated configuration table.
 - **Cortex services** — a fine-tuned triage model; Cortex Search services over council policy, the disclosure log and the historical FOI response corpus; and Cortex `COMPLETE` / `SENTIMENT` for drafting, advice and signal detection.
-- **Application** — a multi-page Streamlit app (Command Centre, Cases, Reviews & ICO, Knowledge & Guidance, intake and configuration) deployed on Snowpark Container Services, with a global AI assistant available on every page.
+- **Application** — a multi-page Next.js application (Command Centre, Cases, Connections & Security, Reporting, Knowledge Base, intake and configuration) deployed on Snowpark Container Services App Runtime, with an AI assistant available across the application.
 - **Governance** — all data and inference remain within the authority's Snowflake account under role-based access control.
 
 ---
