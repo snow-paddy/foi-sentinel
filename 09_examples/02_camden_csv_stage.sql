@@ -6,12 +6,13 @@
 --
 -- Steps:
 --   1. Download the dataset as CSV from Camden's open data portal:
---      https://opendata.camden.gov.uk/resource/j7mk-4ya8.csv
+--      https://opendata.camden.gov.uk/resource/fkj6-gqb4.csv
 --      (or use the portal UI: Datasets → Camden FOI Responses → Export → CSV)
 --   2. Upload the file to a Snowflake internal stage (see below).
 --   3. Run the COPY INTO statement.
 --
--- Source: Camden open data (OGL). Dataset j7mk-4ya8 on opendata.camden.gov.uk.
+-- Source: Camden open data (OGL). Dataset fkj6-gqb4 on opendata.camden.gov.uk.
+-- Note: an older dataset ID (j7mk-4ya8) has been made private; use fkj6-gqb4.
 -- =====================================================================
 
 USE ROLE ACCOUNTADMIN;

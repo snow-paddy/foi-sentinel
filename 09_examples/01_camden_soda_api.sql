@@ -13,7 +13,9 @@
 --   Pass a high number (e.g. 50) to load all ~11,420 rows; pass a small number
 --   to do a trial run.
 --
--- Source: Camden open data (OGL). Dataset j7mk-4ya8 on opendata.camden.gov.uk.
+-- Source: Camden open data (OGL). Dataset fkj6-gqb4 on opendata.camden.gov.uk.
+-- Note: an older dataset ID (j7mk-4ya8) has been made private; fkj6-gqb4 is the
+-- current public endpoint (12,000+ rows, same schema, no authentication needed).
 -- =====================================================================
 
 USE ROLE ACCOUNTADMIN;
@@ -58,13 +60,13 @@ AS
 $$
 import requests
 
-ENDPOINT = 'https://opendata.camden.gov.uk/resource/j7mk-4ya8.json'
+ENDPOINT = 'https://opendata.camden.gov.uk/resource/fkj6-gqb4.json'
 PAGE_SIZE = 1000
 HEADERS   = {'Accept': 'application/json',
              'User-Agent': 'FOI-Sentinel/1.0 (data re-use; public open data)'}
 
-# Socrata field names — verify against the dataset schema before running.
-# GET https://opendata.camden.gov.uk/api/views/j7mk-4ya8.json → columns[].fieldName
+# Socrata field names (verified against fkj6-gqb4 — public dataset).
+# To inspect metadata: GET https://opendata.camden.gov.uk/api/views/fkj6-gqb4.json
 F_ID     = 'identifier'
 F_DATE   = 'document_date'
 F_TITLE  = 'document_title'

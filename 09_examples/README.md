@@ -17,8 +17,12 @@ numbered DDL and must be loaded separately. Three options:
 
 ### Source
 Camden publishes their FOI responses as open data under the Open Government
-Licence. Dataset: `j7mk-4ya8` on `opendata.camden.gov.uk` (Socrata platform).
-Full API documentation: https://opendata.camden.gov.uk/stories/s/Camden-Open-Data-API/tf35-tpy4/
+Licence. The current public dataset ID is `fkj6-gqb4` on `opendata.camden.gov.uk`
+(Socrata platform). An older dataset ID (`j7mk-4ya8`) has been made private and
+now requires login; use `fkj6-gqb4` instead. No API key or account is required.
+
+API documentation: https://opendata.camden.gov.uk/stories/s/Camden-Open-Data-API/tf35-tpy4/
+Public endpoint: `GET https://opendata.camden.gov.uk/resource/fkj6-gqb4.json`
 
 ## GLA disclosure log (`GLA_DISCLOSURE_LOG`)
 
